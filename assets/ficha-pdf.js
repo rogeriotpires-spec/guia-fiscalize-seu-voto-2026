@@ -83,7 +83,8 @@
     field('03  O QUE ACONTECEU? Descreva o que você presenciou', String(data.ocorrido || ''), 128);
     field('04  QUEM VIU JUNTO? Nome e contato das testemunhas', String(data.testemunhas || ''), 72);
     field('05  PARA QUEM CONTOU? Autoridade e número do protocolo', String(data.autoridade || ''), 72);
-    if (data.email) field('06  E-MAIL PARA CONTATO (acesso reservado)', String(data.email), 43);
+    field('06  DADOS DO DENUNCIANTE (acesso reservado)',
+      'Nome completo: ' + String(data.nome || '') + '\nE-mail: ' + String(data.email || '') + '\nTelefone: ' + String(data.telefone || ''), 63);
     if (escaped) {
       if (y < 106) newPage();
       page.drawText('Símbolos fora da fonte foram preservados entre colchetes como códigos Unicode.',{x:margin,y:y,font:regular,size:7.8,color:muted});

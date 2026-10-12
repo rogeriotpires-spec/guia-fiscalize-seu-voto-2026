@@ -2,7 +2,7 @@
   'use strict';
   const endpoint = 'https://timeline-guia-contadores.rogeriotpires.chatgpt.site/api/occurrences';
   const test = new URLSearchParams(location.search).get('contadores') === 'teste';
-  const fields = ['quando','onde','ocorrido','testemunhas','autoridade','email'];
+  const fields = ['quando','onde','ocorrido','testemunhas','autoridade','email','nome','telefone'];
   const consent = document.getElementById('autoriza-publicacao');
   const send = document.getElementById('enviar-ocorrencia');
   const status = document.getElementById('envio-status');
@@ -71,7 +71,11 @@
     for (const key of ['quando','onde','ocorrido']) {
       if (data[key].length < (key === 'ocorrido' ? 10 : 3)) {status.textContent = 'Preencha data, local e uma descrição do fato com pelo menos 10 caracteres.';document.getElementById(key).focus();return;}
     }
-    if (data.email && !document.getElementById('email').checkValidity()) {status.textContent = 'Confira o endereço de e-mail.';document.getElementById('email').focus();return;}
+    if (data.nome.length < 3) {status.textContent = 'Informe seu nome completo para enviar o relato.';document.getElementById('nome').focus();return;}
+    if (!data.email || !document.getElementById('email').checkValidity()) {status.textContent = 'Informe um endereço de e-mail válido para contato.';document.getElementById('email').focus();return;}
+    const phoneDigits = data.telefone.replace(/\D/g,'');
+    const validPhone = /^\+?[\d\s().-]+$/.test(data.telefone) && (data.telefone.startsWith('+') ? /^[1-9]\d{7,14}$/.test(phoneDigits) : /^[1-9]{2}\d{8,9}$/.test(phoneDigits));
+    if (!validPhone) {status.textContent = 'Informe um telefone com DDD. Para números internacionais, inclua + e o código do país.';document.getElementById('telefone').focus();return;}
     busy = true; updateButton(); status.textContent = 'Enviando a ficha autorizada…';
     const snapshot = fingerprint();
     try {
@@ -80,11 +84,11 @@
       if (!consent.checked || snapshot !== fingerprint()) throw new Error('Os campos mudaram durante o preparo. Confira a ficha e clique em enviar novamente.');
       if (!lastRequest || lastRequest.fingerprint !== snapshot) lastRequest = {fingerprint:snapshot,id:crypto.randomUUID()};
       const body = new FormData();
-      body.append('payload',JSON.stringify(Object.assign({id:lastRequest.id,consent:true,consentVersion:'2026-10-12-v1',website:document.getElementById('ocorrencia-website').value},data)));
+      body.append('payload',JSON.stringify(Object.assign({id:lastRequest.id,consent:true,consentVersion:'2026-10-12-v2',website:document.getElementById('ocorrencia-website').value},data)));
       if (imageState) body.append('image',imageState.blob,'ocorrencia.jpg');
       const result = await request(endpoint+(test?'?test=1':''),{method:'POST',body:body});
       savedFingerprint = snapshot;
-      status.textContent = (test ? 'Ficha de teste salva, fora da tabela pública principal.' : 'Relato publicado. E-mail, testemunhas, protocolo e imagem ficaram em acesso reservado.') + ' Identificador: ' + result.id;
+      status.textContent = (test ? 'Ficha de teste salva, fora da tabela pública principal.' : 'Relato publicado. Nome, e-mail, telefone, testemunhas, protocolo e imagem ficaram em acesso reservado.') + ' Identificador: ' + result.id;
       page = 1; await loadTable();
     } catch(error) {
       status.textContent = (error.name === 'AbortError' || error instanceof TypeError) ? 'Não foi possível confirmar o envio. Tente novamente: a mesma ficha não será duplicada.' : (error.message || 'Não foi possível enviar. Tente novamente.');

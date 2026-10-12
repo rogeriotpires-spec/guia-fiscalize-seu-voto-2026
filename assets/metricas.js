@@ -86,7 +86,7 @@
     fichaStatus.textContent = 'Preparando o PDF da sua ficha…';
     try {
       const data = {};
-      ['quando','onde','ocorrido','testemunhas','autoridade','email'].forEach(function (key) { data[key] = document.getElementById(key).value; });
+      ['quando','onde','ocorrido','testemunhas','autoridade','email','nome','telefone'].forEach(function (key) { data[key] = document.getElementById(key).value; });
       if (window.TimelineOcorrencias) data.image = await window.TimelineOcorrencias.imageForExport();
       const resources = await loadPdfLibrary();
       const bytes = await window.TimelineFicha.createPdf(data, resources[0], resources[2], resources[1]);
