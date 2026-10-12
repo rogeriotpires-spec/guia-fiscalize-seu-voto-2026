@@ -78,19 +78,34 @@
       }
     }
     newPage();
-    field('01  QUANDO? Data e hora', String(data.quando || ''), 43);
+    field('01  QUANDO? Data e hora do fato', String(data.quando || ''), 43);
     field('02  ONDE? Cidade, local, zona e seção', String(data.onde || ''), 57);
     field('03  O QUE ACONTECEU? Descreva o que você presenciou', String(data.ocorrido || ''), 128);
     field('04  QUEM VIU JUNTO? Nome e contato das testemunhas', String(data.testemunhas || ''), 72);
     field('05  PARA QUEM CONTOU? Autoridade e número do protocolo', String(data.autoridade || ''), 72);
+    if (data.email) field('06  E-MAIL PARA CONTATO (acesso reservado)', String(data.email), 43);
     if (escaped) {
       if (y < 106) newPage();
       page.drawText('Símbolos fora da fonte foram preservados entre colchetes como códigos Unicode.',{x:margin,y:y,font:regular,size:7.8,color:muted});
     }
+    if (data.image && data.image.bytes && data.image.bytes.length) {
+      const attachment = data.image.type === 'image/png'
+        ? await doc.embedPng(data.image.bytes)
+        : await doc.embedJpg(data.image.bytes);
+      newPage();
+      page.drawText('IMAGEM ANEXADA À FICHA', {x:margin,y:y,font:bold,size:11,color:ink});
+      y -= 22;
+      page.drawText('A imagem não é exibida na tabela pública de ocorrências.', {x:margin,y:y,font:regular,size:9,color:muted});
+      y -= 20;
+      const scale = Math.min(inner / attachment.width, (y - 76) / attachment.height);
+      const imageWidth = attachment.width * scale, imageHeight = attachment.height * scale;
+      page.drawImage(attachment, {x:margin+(inner-imageWidth)/2,y:y-imageHeight,width:imageWidth,height:imageHeight});
+    }
     const pages = doc.getPages();
     pages.forEach(function (p, i) {
+      if (data.id) p.drawText('Identificador do relato: ' + printable(data.id),{x:margin,y:61,font:regular,size:7.5,color:muted});
       p.drawLine({start:{x:margin,y:51},end:{x:width-margin,y:51},thickness:.5,color:line});
-      p.drawText('Relate fatos. Este documento não substitui o registro junto à autoridade competente.',{x:margin,y:38,font:regular,size:7.5,color:muted});
+      p.drawText('Fatos antes, durante ou depois da eleição. Não substitui registro na autoridade competente.',{x:margin,y:38,font:regular,size:7.5,color:muted});
       p.drawText('REVISTA TIMELINE  |  @rogerrio  |  @rogerrioX',{x:margin,y:26,font:regular,size:7.5,color:muted});
       p.drawText(String(i+1)+' / '+pages.length,{x:width-margin-25,y:26,font:regular,size:7.5,color:muted});
     });
@@ -99,3 +114,4 @@
   if (typeof module === 'object' && module.exports) module.exports = {createPdf:createPdf};
   else root.TimelineFicha = {createPdf:createPdf};
 })(typeof window !== 'undefined' ? window : globalThis);
+
