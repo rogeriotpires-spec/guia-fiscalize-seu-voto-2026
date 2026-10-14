@@ -1,0 +1,15 @@
+.metricas{margin:-12px 0 28px;color:#999}
+.metricas-lista{display:flex;flex-wrap:wrap;align-items:baseline;gap:5px 20px;margin:0}
+.metrica{display:flex;align-items:baseline;gap:6px;font-size:12px;line-height:1.6}
+.metrica dt{color:#999}
+.metrica dd{margin:0;color:#bdbdbd;font-size:13px;font-weight:600;font-variant-numeric:tabular-nums}
+.metricas-ajuda{margin-top:4px;font-size:11px;line-height:1.5}
+.metricas-ajuda summary{width:fit-content;cursor:pointer;color:#999}
+.metricas-ajuda summary:hover{color:#d0d0d0}
+.metricas-ajuda summary:focus-visible{outline:1px solid #aaa;outline-offset:3px}
+.metricas-nota{max-width:680px;margin:6px 0 0;color:#999;font-size:11px}
+.metrica dd.indisponivel{color:#999;font-size:11px;font-weight:400}
+#ficha-status{min-height:1.5em}
+.btn:disabled{cursor:wait;opacity:.65}
+@media(max-width:480px){.metricas-lista{gap:4px 14px}.metrica{font-size:11px;gap:5px}.metrica dd{font-size:12px}}
+@media print{.metricas,#ficha-status{display:none!important}}

@@ -1,0 +1,155 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=Playfair+Display:wght@600;700&display=swap');
+
+/* Cabeçalho compartilhado com o Observatório Eleitoral da Revista Timeline. */
+.timeline-sitebar {
+  position: relative;
+  z-index: 11;
+  background: #050403;
+  color: #f6f2ee;
+  border-bottom: 1px solid #2c221c;
+  font-family: Inter, Arial, sans-serif;
+}
+.timeline-sitebar__masthead {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  max-width: 1380px;
+  min-height: 91px;
+  margin: auto;
+  padding: 13px 20px;
+  border-bottom: 1px solid #2c221c;
+}
+.timeline-sitebar__brand {
+  color: #f6f2ee;
+  font-family: "Playfair Display", Georgia, serif;
+  font-size: 50px;
+  font-weight: 400;
+  letter-spacing: .025em;
+  line-height: 1;
+  text-decoration: none;
+}
+.timeline-sitebar__brand:hover,
+.timeline-sitebar__brand:focus-visible {
+  color: #f6f2ee;
+}
+.timeline-sitebar__tools {
+  position: absolute;
+  right: 20px;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  align-items: center;
+}
+.timeline-sitebar__return {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px 12px;
+  border: 1px solid #3a2d24;
+  border-radius: 5px;
+  background: #171210;
+  color: #f4a65a;
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+  text-decoration: none;
+}
+.timeline-sitebar__navigation {
+  border-top: 1px solid #2c221c;
+}
+.timeline-sitebar__links {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(12px, 1.55vw, 26px);
+  max-width: 1380px;
+  min-height: 51px;
+  margin: 0 auto;
+  padding: 0 14px;
+  white-space: nowrap;
+  overflow-x: auto;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+}
+.timeline-sitebar__links::-webkit-scrollbar {
+  display: none;
+}
+.timeline-sitebar__links a {
+  position: relative;
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 15px 0 13px;
+  border-bottom: 2px solid transparent;
+  color: #c5bbb5;
+  font-size: clamp(11px, 1.04vw, 13px);
+  font-weight: 400;
+  line-height: 1.5;
+  text-decoration: none;
+}
+.timeline-sitebar__links a:hover,
+.timeline-sitebar__links a:focus-visible {
+  color: #f4a65a;
+}
+.timeline-sitebar__links a[aria-current="page"] {
+  border-bottom-color: #e07a2c;
+  color: #fff;
+}
+.timeline-sitebar a:focus-visible {
+  outline: 2px solid #f4a65a;
+  outline-offset: 3px;
+}
+@media (max-width: 1200px) {
+  .timeline-sitebar__links {
+    justify-content: flex-start;
+    gap: 20px;
+    padding-left: 18px;
+    padding-right: 18px;
+  }
+  .timeline-sitebar__links a {
+    font-size: 13px;
+  }
+}
+@media (max-width: 1000px) {
+  .timeline-sitebar__masthead {
+    min-height: 75px;
+  }
+  .timeline-sitebar__brand {
+    font-size: 44px;
+  }
+}
+@media (max-width: 600px) {
+  .timeline-sitebar__masthead {
+    min-height: 62px;
+    padding: 10px;
+  }
+  .timeline-sitebar__brand {
+    font-size: 33px;
+  }
+  .timeline-sitebar__tools {
+    right: 10px;
+  }
+  .timeline-sitebar__return {
+    padding: 6px 8px;
+    font-size: 10px;
+  }
+  .timeline-sitebar__links {
+    gap: 18px;
+    min-height: 45px;
+  }
+  .timeline-sitebar__links a {
+    padding: 12px 0 11px;
+    font-size: 12px;
+  }
+}
+@media (max-width: 359px) {
+  .timeline-sitebar__brand {
+    font-size: 28px;
+  }
+  .timeline-sitebar__return {
+    padding: 6px;
+    font-size: 9px;
+  }
+}
