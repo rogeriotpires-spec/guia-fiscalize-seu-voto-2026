@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Confira seu BU | Fiscalize Seu Voto 2026 | Revista Timeline</title>
+<meta name="description" content="Compare o boletim de urna da sua seção com o resultado publicado pelo TSE no 2º turno de 2026.">
+<meta property="og:title" content="Confira seu boletim de urna | Revista Timeline">
+<meta property="og:description" content="Fotografe o QR Code do boletim da sua seção e veja se o resultado chegou igual ao TSE.">
+<meta property="og:image" content="https://rogeriotpires-spec.github.io/guia-fiscalize-seu-voto-2026/assets/pagina-6.png">
+<link rel="stylesheet" href="../assets/timeline-header.css?v=1">
+<link rel="stylesheet" href="../assets/conferir.css?v=1">
+</head>
+<body>
+<header class="timeline-sitebar" aria-label="Cabeçalho da Revista Timeline">
+  <div class="timeline-sitebar__masthead">
+    <a class="timeline-sitebar__brand" href="https://www.revistatimeline.com/" aria-label="Revista Timeline, página inicial">Timeline</a>
+    <div class="timeline-sitebar__tools"><a class="timeline-sitebar__return" href="../">← Guia Fiscalize</a></div>
+  </div>
+  <div class="timeline-sitebar__navigation">
+    <nav class="timeline-sitebar__links" aria-label="Menu principal da Revista Timeline">
+      <a href="https://www.revistatimeline.com/">Início</a>
+      <a href="https://observatorio.revistatimeline.com/">Observatório Eleitoral</a>
+      <a href="../">Fiscalize Seu Voto</a>
+      <a href="./" aria-current="page">Confira seu BU</a>
+      <a href="https://www.instagram.com/_revistatimeline/" target="_blank" rel="noopener noreferrer">Instagram</a>
+    </nav>
+  </div>
+</header>
+
+<main>
+  <p class="eyebrow">2º TURNO · 25 DE OUTUBRO DE 2026</p>
+  <h1>CONFIRA <span>SEU BU</span></h1>
+  <p class="intro">Você tem a foto do boletim de urna colado na porta da sua seção? Em um minuto, compare o resultado impresso ali com o que o TSE publicou.</p>
+
+  <ol class="passos" aria-label="Como funciona">
+    <li><b>1</b><span>Envie a foto do <strong>QR Code</strong> do boletim. O site lê os números sozinho.</span></li>
+    <li><b>2</b><span>Confira se os dados lidos são os do papel. Corrija se precisar.</span></li>
+    <li><b>3</b><span>Veja o resultado da comparação com o TSE.</span></li>
+  </ol>
+
+  <section class="painel" aria-labelledby="t-foto">
+    <h2 id="t-foto">1 · Foto do QR Code</h2>
+    <p class="muted">Fotografe cada QR Code de perto, bem iluminado e sem cortar as bordas. Se o boletim tiver mais de um QR Code, envie todos (pode selecionar várias fotos). A foto é lida no seu aparelho e não é enviada para lugar nenhum.</p>
+    <label class="upload" for="fotos">
+      <input id="fotos" type="file" accept="image/*" multiple>
+      <span class="btn primary">📷 Escolher fotos do QR Code</span>
+    </label>
+    <div id="qr-status" class="status" role="status" aria-live="polite"></div>
+    <ul id="qr-lista" class="qr-lista"></ul>
+  </section>
+
+  <section class="painel" aria-labelledby="t-dados">
+    <h2 id="t-dados">2 · Dados do boletim</h2>
+    <p class="muted">Preenchidos pelo QR Code. Sem QR Code, digite os números exatamente como estão no papel.</p>
+    <form id="form-bu" novalidate>
+      <div class="grade">
+        <label>UF
+          <select id="uf" required>
+            <option value="">Escolha</option>
+            <option>AC</option><option>AL</option><option>AM</option><option>AP</option><option>BA</option><option>CE</option><option>DF</option><option>ES</option><option>GO</option><option>MA</option><option>MG</option><option>MS</option><option>MT</option><option>PA</option><option>PB</option><option>PE</option><option>PI</option><option>PR</option><option>RJ</option><option>RN</option><option>RO</option><option>RR</option><option>RS</option><option>SC</option><option>SE</option><option>SP</option><option>TO</option>
+          </select>
+        </label>
+        <label>Código do município <small>(número ao lado de "Município")</small><input id="muni" inputmode="numeric" pattern="[0-9]*" maxlength="5" required></label>
+        <label>Zona eleitoral<input id="zona" inputmode="numeric" pattern="[0-9]*" maxlength="4" required></label>
+        <label>Seção eleitoral<input id="secao" inputmode="numeric" pattern="[0-9]*" maxlength="4" required></label>
+      </div>
+      <div class="grade">
+        <label>Lula (13)<input id="v13" inputmode="numeric" pattern="[0-9]*" maxlength="4" required></label>
+        <label>Flávio Bolsonaro (22)<input id="v22" inputmode="numeric" pattern="[0-9]*" maxlength="4" required></label>
+        <label>Brancos<input id="bran" inputmode="numeric" pattern="[0-9]*" maxlength="4" required></label>
+        <label>Nulos<input id="nulo" inputmode="numeric" pattern="[0-9]*" maxlength="4" required></label>
+      </div>
+      <div id="checagem" class="checagem" role="status"></div>
+      <button class="btn primary" type="submit">Comparar com o TSE</button>
+    </form>
+  </section>
+
+  <section class="painel" id="resultado" aria-labelledby="t-res" hidden>
+    <h2 id="t-res">3 · Resultado</h2>
+    <div id="res-selo" class="selo"></div>
+    <div class="tabela-rolagem"><table class="tabela"><thead><tr><th scope="col">Campo</th><th scope="col">Seu boletim</th><th scope="col">Publicado pelo TSE</th></tr></thead><tbody id="res-tabela"></tbody></table></div>
+    <p id="res-texto"></p>
+    <div class="actions">
+      <a class="btn" id="link-tse" target="_blank" rel="noopener noreferrer">Abrir este boletim no site do TSE ↗</a>
+      <a class="btn" href="https://forms.gle/6YfsatF9Z5hdLsFx9" target="_blank" rel="noopener noreferrer">Enviar a foto para a conferência nacional ↗</a>
+    </div>
+  </section>
+
+  <details class="sobre">
+    <summary>O que esta conferência prova, e o que não prova</summary>
+    <p>Ela mostra se o resultado impresso pela urna na sua seção chegou ao TSE exatamente igual. É a parte do caminho que qualquer eleitor pode verificar com uma foto.</p>
+    <p>Ela não diz se a urna contou certo os votos que recebeu: o boletim é impresso pela própria urna. Para isso existem outros testes (logs, registro digital do voto e teste de integridade), que a Revista Timeline acompanha separadamente.</p>
+    <p>Os dados oficiais vêm dos arquivos públicos do TSE (Portal de Dados Abertos e Portal Resultados). Use sempre o boletim impresso na seção, não a "via digital" do aplicativo, que já é a versão do próprio TSE.</p>
+  </details>
+</main>
+<footer>REVISTA TIMELINE · FISCALIZE SEU VOTO 2026<br>Instagram: @rogerrio · X: @rogerrioX</footer>
+<script src="../assets/vendor/jsQR.min.js" defer></script>
+<script src="../assets/conferir.js?v=1" defer></script>
+</body>
+</html>
