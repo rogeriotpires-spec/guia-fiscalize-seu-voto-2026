@@ -48,7 +48,21 @@ jobs:
         run: |
           git config user.name "Robô Fiscalize"
           git config user.email "robo-fiscalize@users.noreply.github.com"
-          git add -A data/bus bus/img automacao/estado.json automacao/depuracao
-          if git diff --cached --quiet; then echo "nada novo"; exit 0; fi
-          git commit -qm "Robô: atualiza a conferência dos boletins enviados"
-          for i in 1 2 3; do git pull -q --rebase origin main && git push -q origin HEAD:main && break; sleep 5; done
+          # publica sempre por cima da versão atual do main (nunca reaplica commits antigos)
+          tmp=$(mktemp -d)
+          mkdir -p data/bus bus/img automacao/depuracao
+          cp -r data/bus "$tmp/painel"; cp -r bus/img "$tmp/img"; cp -r automacao/depuracao "$tmp/dep"
+          cp automacao/estado.json "$tmp/estado.json"
+          for i in 1 2 3; do
+            git fetch -q origin main && git reset -q --hard origin/main
+            rm -rf data/bus bus/img automacao/depuracao
+            mkdir -p data bus automacao
+            cp -r "$tmp/painel" data/bus; cp -r "$tmp/img" bus/img; cp -r "$tmp/dep" automacao/depuracao
+            cp "$tmp/estado.json" automacao/estado.json
+            git add -A data/bus bus/img automacao/estado.json automacao/depuracao
+            if git diff --cached --quiet; then echo "nada novo"; exit 0; fi
+            git commit -qm "Robô: atualiza a conferência dos boletins enviados"
+            git push -q origin HEAD:main && exit 0
+            sleep 5
+          done
+          exit 1
