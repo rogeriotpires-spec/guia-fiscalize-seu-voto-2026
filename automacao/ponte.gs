@@ -8,7 +8,6 @@ const FORM_ID = '1I5Dtwl42Ix2hc24trXyLfz7p1negFX_7Ftqs6-CYAso';
 const PASTA_UPLOADS = '17QfifUvxcFO45Y08e31PVLSY3StIWu5lchADy5cSFI7Jk3mJduviHsgIE_hobU7gRo9m5SsF';
 const PASTA_RELATORIOS = '14bbCRZvg_iQyCGpEbU904F6LuZWBq6SU';
 const NOME_PLANILHA = 'Fiscalize – Painel interno (restrito)';
-const ABA_DIVERG = 'Divergências para aprovar';
 
 /** Rode UMA vez pelo editor: cria a senha e a planilha e mostra a senha no registro. */
 function configurar() {
@@ -43,7 +42,7 @@ function doGet(e) {
   if (!autorizado_(q.t)) return json_({ erro: 'nao autorizado' });
   if (q.acao === 'respostas') return json_(respostas_());
   if (q.acao === 'arquivo') return json_(arquivo_(q.id));
-  if (q.acao === 'aprovacoes') return json_(aprovacoes_());
+  if (q.acao === 'marcacoes') return json_(marcacoes_());
   return json_({ erro: 'acao desconhecida' });
 }
 
@@ -66,51 +65,62 @@ function arquivo_(id) {
   return { mime: b.getContentType(), b64: Utilities.base64Encode(b.getBytes()) };
 }
 
-function aprovacoes_() {
-  const sh = planilha_().getSheetByName(ABA_DIVERG);
-  if (!sh || sh.getLastRow() < 2) return { aprovadas: [] };
-  const v = sh.getDataRange().getValues(); const h = v[0];
-  const ic = h.indexOf('chave'), ia = h.indexOf('Aprovar publicação');
-  return { aprovadas: v.slice(1).filter(r => r[ia] === true).map(r => String(r[ic])) };
+/** Devolve o que o Rogerio preencheu à mão nas colunas editáveis:
+ *  {aba: {chave: {coluna: valor}}}. */
+function marcacoes_() {
+  const ss = planilha_(); const out = {};
+  const cfg = JSON.parse(PropertiesService.getScriptProperties().getProperty('EDITAVEIS') || '{}');
+  for (const aba of Object.keys(cfg)) {
+    const sh = ss.getSheetByName(aba); out[aba] = {};
+    if (!sh || sh.getLastRow() < 2) continue;
+    const v = sh.getDataRange().getValues(); const h = v[0]; const ic = h.indexOf('chave');
+    v.slice(1).forEach(r => {
+      const o = {}; let tem = false;
+      cfg[aba].forEach(c => { const i = h.indexOf(c); if (i >= 0 && r[i] !== '' && r[i] !== false) { o[c] = r[i]; tem = true; } });
+      if (tem) out[aba][String(r[ic])] = o;
+    });
+  }
+  return out;
 }
 
-/** Recebe {t, abas:{nome:[[cabeçalho],[linha]...]}} e reescreve as abas,
- *  preservando o que o Rogerio marcou na aba de divergências. */
+/** Recebe {t, abas:{nome:[[cabeçalho],[linha]...]}, editaveis:{aba:[colunas]}, caixas:{aba:[colunas]}}
+ *  e reescreve as abas, preservando o que o Rogerio preencheu nas colunas editáveis. */
 function doPost(e) {
   const body = JSON.parse(e.postData.contents);
   if (!autorizado_(body.t)) return json_({ erro: 'nao autorizado' });
+  const ed = body.editaveis || {}, cx = body.caixas || {};
+  PropertiesService.getScriptProperties().setProperty('EDITAVEIS', JSON.stringify(ed));
   const ss = planilha_();
   for (const nome of Object.keys(body.abas)) {
     let linhas = body.abas[nome];
     let sh = ss.getSheetByName(nome) || ss.insertSheet(nome);
-    if (nome === ABA_DIVERG) linhas = preservarMarcacoes_(sh, linhas);
-    sh.clearContents();
+    if (ed[nome]) linhas = preservar_(sh, linhas, ed[nome]);
+    sh.clear();
     if (!linhas.length) continue;
     const w = Math.max.apply(null, linhas.map(l => l.length));
     linhas = linhas.map(l => l.concat(Array(w - l.length).fill('')));
     sh.getRange(1, 1, linhas.length, w).setValues(linhas);
     sh.setFrozenRows(1);
     sh.getRange(1, 1, 1, w).setFontWeight('bold');
-    if (nome === ABA_DIVERG && linhas.length > 1) {
-      const ia = linhas[0].indexOf('Aprovar publicação') + 1;
-      sh.getRange(2, ia, linhas.length - 1, 1).insertCheckboxes();
-    }
+    (cx[nome] || []).forEach(c => {
+      const i = linhas[0].indexOf(c) + 1;
+      if (i > 0 && linhas.length > 1) sh.getRange(2, i, linhas.length - 1, 1).insertCheckboxes();
+    });
   }
   const padrao = ss.getSheetByName('Sheet1') || ss.getSheetByName('Página1');
   if (padrao && ss.getSheets().length > 1) ss.deleteSheet(padrao);
   return json_({ ok: true, url: ss.getUrl() });
 }
 
-function preservarMarcacoes_(sh, linhas) {
+function preservar_(sh, linhas, cols) {
   if (sh.getLastRow() < 2 || !linhas.length) return linhas;
-  const v = sh.getDataRange().getValues(); const h = v[0];
-  const ic = h.indexOf('chave'), ia = h.indexOf('Aprovar publicação'), io = h.indexOf('Observação do Rogerio');
-  const m = {};
-  v.slice(1).forEach(r => { m[String(r[ic])] = [r[ia], io >= 0 ? r[io] : '']; });
-  const nh = linhas[0];
-  const nc = nh.indexOf('chave'), na = nh.indexOf('Aprovar publicação'), no = nh.indexOf('Observação do Rogerio');
+  const v = sh.getDataRange().getValues(); const h = v[0]; const ic = h.indexOf('chave');
+  const m = {}; v.slice(1).forEach(r => { m[String(r[ic])] = r; });
+  const nh = linhas[0]; const nc = nh.indexOf('chave');
   return [nh].concat(linhas.slice(1).map(l => {
     const old = m[String(l[nc])]; if (!old) return l;
-    const c = l.slice(); c[na] = old[0] === true; if (no >= 0) c[no] = old[1]; return c;
+    const c = l.slice();
+    cols.forEach(col => { const i = h.indexOf(col), j = nh.indexOf(col); if (i >= 0 && j >= 0) c[j] = old[i]; });
+    return c;
   }));
 }
