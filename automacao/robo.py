@@ -92,9 +92,14 @@ def ponte_get(**q):
     q['t'] = TOKEN
     for tent in range(5):
         try:
-            r = SESSAO.get(URL, params=q, timeout=180)
+            r = SESSAO.get(URL, params=q, timeout=300)
             r.raise_for_status()
-            d = r.json()
+            try:
+                d = r.json()
+            except ValueError:
+                titulo = re.search(r'<title>(.*?)</title>', r.text or '', re.S)
+                raise ValueError(f"resposta não é JSON (HTTP {r.status_code}, {r.headers.get('content-type')}, "
+                                 f"página: {titulo.group(1).strip()[:80] if titulo else '?'})")
             if isinstance(d, dict) and d.get('erro'):
                 raise RuntimeError('ponte: ' + d['erro'])
             return d
@@ -102,7 +107,9 @@ def ponte_get(**q):
             raise
         except Exception as e:  # noqa: BLE001
             espera = 5 * (tent + 1)
-            log(f'ponte falhou ({type(e).__name__}), nova tentativa em {espera}s')
+            msg = str(e).replace(TOKEN, '***') if TOKEN else str(e)
+            msg = re.sub(r'https?://\S+', '<url>', msg)[:200]
+            log(f'ponte falhou ({type(e).__name__}: {msg}), nova tentativa em {espera}s')
             time.sleep(espera)
     raise RuntimeError('ponte indisponível')
 
