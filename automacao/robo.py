@@ -38,13 +38,28 @@ try:
     import pytesseract
 except ImportError:  # pragma: no cover
     pytesseract = None
+try:
+    import pillow_heif
+    pillow_heif.register_heif_opener()
+except ImportError:  # pragma: no cover
+    pass
+try:
+    from nacl.public import PublicKey, SealedBox
+except ImportError:  # pragma: no cover
+    SealedBox = None
+import threading
+_SEM_OCR = threading.BoundedSemaphore(3)
 
 RAIZ = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 ESTADO = os.path.join(RAIZ, 'automacao', 'estado.json')
 SAIDA = os.path.join(RAIZ, 'data', 'bus', 'painel.json')
 PASTA_IMG = os.path.join(RAIZ, 'bus', 'img')
 BASE = os.path.join(RAIZ, 'data', '2t')
-VERSAO = 3  # muda quando a lógica de classificação muda (reprocessa o cache)
+VERSAO = 4  # muda quando a lógica de leitura muda (reprocessa o que não tem QR completo)
+os.environ.setdefault('OMP_THREAD_LIMIT', '1')  # tesseract com uma thread por processo
+DEPURACAO = os.path.join(RAIZ, 'automacao', 'depuracao')
+# chave pública para miniaturas de depuração criptografadas (só o Claude tem a privada)
+CHAVE_DEPURACAO = 'kcwi+vH8v9LYAXhWjtdS7ldVopqJfTO4Iknc4lU5QjE='
 
 _CFG = os.path.join(RAIZ, 'automacao', 'config.json')
 URL = os.environ.get('PONTE_URL') or (json.load(open(_CFG)).get('ponte_url', '') if os.path.exists(_CFG) else '')
@@ -255,9 +270,24 @@ def ocr(img):
         g = cv2.resize(g, (int(W * s), int(H * s)), interpolation=cv2.INTER_AREA)
     g = cv2.createCLAHE(clipLimit=2.0, tileGridSize=(8, 8)).apply(g)
     try:
-        return pytesseract.image_to_string(g, lang=LINGUA_OCR, config='--psm 6', timeout=90)
-    except Exception:  # noqa: BLE001
+        with _SEM_OCR:
+            return pytesseract.image_to_string(g, lang=LINGUA_OCR, config='--psm 6', timeout=150)
+    except Exception as e:  # noqa: BLE001
+        log(f'OCR falhou ({type(e).__name__})')
         return ''
+
+
+def depurar(img, nome):
+    """Guarda miniatura CRIPTOGRAFADA para revisão (ilegível ao público)."""
+    if SealedBox is None or os.environ.get('DEPURAR', '1') != '1':
+        return
+    im = Image.fromarray(img)
+    im.thumbnail((1100, 1100))
+    b = io.BytesIO()
+    im.save(b, 'JPEG', quality=60)
+    caixa = SealedBox(PublicKey(base64.b64decode(CHAVE_DEPURACAO)))
+    os.makedirs(DEPURACAO, exist_ok=True)
+    open(os.path.join(DEPURACAO, nome + '.bin'), 'wb').write(caixa.encrypt(b.getvalue()))
 
 
 import threading
@@ -368,10 +398,16 @@ def processar_arquivo(fid):
         qrs |= ler_qrs(im)
     res['qr'] = sorted(q for q in qrs if q.startswith('QRBU:'))  # QR de outro tipo pode ter dado pessoal
     res['outros_qr'] = len(qrs) - len(res['qr'])
+    res['outros_qr_inicio'] = sorted({re.sub(r'[^A-Za-z:/.]', '', q[:8]) for q in qrs if not q.startswith('QRBU:')})
     bu = montar_bu(res['qr'])
     if not bu or bu['falta']:
         res['ocr'] = resumo_ocr((info.get('texto_pdf') or '') + '\n' + '\n'.join(ocr(im) for im in imgs[:2]))
     res['rosto'] = any(tem_rosto(im) for im in imgs[:2])
+    if not bu or bu['falta']:
+        try:
+            depurar(imgs[0], h('dep' + fid, 20))
+        except Exception:  # noqa: BLE001
+            pass
     return res, (None if res['rosto'] else miniatura(imgs[0]))
 
 
@@ -521,7 +557,12 @@ def main():
 
     envios = [(r, campos(r)) for r in respostas]
     todos = [fid for _, c in envios for fid in c['arquivos']]
-    novos = [f for f in dict.fromkeys(todos) if cache.get(h(f), {}).get('v') != VERSAO]
+    def completo(a):
+        b = montar_bu(a.get('qr', [])) if a else None
+        return bool(b and not b['falta'])
+    novos = [f for f in dict.fromkeys(todos)
+             if h(f) not in cache or (cache[h(f)].get('v') != VERSAO and not completo(cache[h(f)]))]
+    novos.sort(key=lambda f: h(f) in cache)  # primeiro os nunca vistos
     log(f'{len(todos)} arquivos, {len(novos)} a processar')
     imagens = {}
 

@@ -35,7 +35,7 @@ jobs:
         with:
           python-version: '3.12'
       - name: Instalar bibliotecas
-        run: pip install -q opencv-python-headless==4.10.0.84 zxing-cpp==3.1.1 pymupdf==2.0 pytesseract==0.3.13 pillow==10.4.0 requests==2.32.3 numpy==1.26.4
+        run: pip install -q opencv-python-headless==4.10.0.84 zxing-cpp==3.1.1 pymupdf==2.0 pytesseract==0.3.13 pillow==10.4.0 requests==2.32.3 numpy==1.26.4 pillow-heif==0.18.0 pynacl==1.5.0
       - name: Conferir os boletins
         env:
           PONTE_URL: ${{ vars.PONTE_URL }}
@@ -48,7 +48,7 @@ jobs:
         run: |
           git config user.name "Robô Fiscalize"
           git config user.email "robo-fiscalize@users.noreply.github.com"
-          git add data/bus bus/img automacao/estado.json
+          git add data/bus bus/img automacao/estado.json automacao/depuracao 2>/dev/null || git add data/bus bus/img automacao/estado.json
           if git diff --cached --quiet; then echo "nada novo"; exit 0; fi
           git commit -qm "Robô: atualiza a conferência dos boletins enviados"
           for i in 1 2 3; do git pull -q --rebase origin main && git push -q origin HEAD:main && break; sleep 5; done
