@@ -90,6 +90,7 @@ SESSAO = requests.Session()
 
 def ponte_get(**q):
     q['t'] = TOKEN
+    msg = ''
     for tent in range(5):
         try:
             r = SESSAO.get(URL, params=q, timeout=300)
@@ -111,7 +112,7 @@ def ponte_get(**q):
             msg = re.sub(r'https?://\S+', '<url>', msg)[:200]
             log(f'ponte falhou ({type(e).__name__}: {msg}), nova tentativa em {espera}s')
             time.sleep(espera)
-    raise RuntimeError('ponte indisponível')
+    raise RuntimeError('ponte indisponível: ' + msg)
 
 
 def ponte_post(corpo):
