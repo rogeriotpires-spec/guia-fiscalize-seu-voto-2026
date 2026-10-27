@@ -1,0 +1,111 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Resultado dos boletins | Fiscalize Seu Voto 2026 | Revista Timeline</title>
+<meta name="description" content="Apuração dos boletins de urna do 2º turno enviados por eleitores e conferidos com o TSE, por estado e por município.">
+<meta property="og:title" content="Resultado dos boletins conferidos | Revista Timeline">
+<meta property="og:description" content="A soma dos boletins de urna enviados por eleitores e conferidos, seção por seção, com o TSE.">
+<meta property="og:image" content="https://rogeriotpires-spec.github.io/guia-fiscalize-seu-voto-2026/assets/pagina-6.png">
+<link rel="stylesheet" href="../assets/timeline-header.css?v=4">
+<link rel="stylesheet" href="../assets/conferir.css?v=2">
+<link rel="stylesheet" href="../assets/boletins.css?v=2">
+<link rel="stylesheet" href="../assets/resultado.css?v=2">
+</head>
+<body>
+<header class="timeline-sitebar" aria-label="Cabeçalho da Revista Timeline">
+  <div class="timeline-sitebar__masthead">
+    <a class="timeline-sitebar__brand" href="https://www.revistatimeline.com/" aria-label="Revista Timeline, página inicial">Timeline</a>
+    <div class="timeline-sitebar__tools">
+      <a class="timeline-sitebar__return" href="https://www.revistatimeline.com/" aria-label="Ir ao site da Revista Timeline">↗ Ir à revista</a>
+    </div>
+  </div>
+  <div class="timeline-sitebar__navigation">
+    <nav class="timeline-sitebar__links" aria-label="Menu principal da Revista Timeline">
+      <a href="https://www.revistatimeline.com/">Início</a>
+      <a href="https://www.revistatimeline.com/podcast">Podcasts</a>
+      <a href="https://lp.revistatimeline.com/">Assine</a>
+      <a href="https://loja.revistatimeline.com/">Loja Timeline</a>
+      <a href="https://observatorio.revistatimeline.com/">Observatório Eleitoral</a>
+      <a href="https://fiscalize.revistatimeline.com/" aria-current="page">Fiscalize Seu Voto</a>
+      <a href="https://www.youtube.com/@conversatimeline" target="_blank" rel="noopener noreferrer">YouTube</a>
+      <a href="https://www.instagram.com/_revistatimeline/" target="_blank" rel="noopener noreferrer">Instagram</a>
+      <a href="https://www.facebook.com/profile.php?id=61572807617119" target="_blank" rel="noopener noreferrer">Facebook</a>
+      <a href="https://www.revistatimeline.com/s/caderno-de-cultura">Caderno de Cultura</a>
+      <a href="https://www.revistatimeline.com/about">Sobre</a>
+    </nav>
+  </div>
+</header>
+<nav class="fiscalize-subnav" aria-label="Áreas do Fiscalize Seu Voto">
+  <div class="fiscalize-subnav__in">
+    <a class="fiscalize-subnav__brand" href="../"><span class="fiscalize-subnav__mark">F</span> FISCALIZE SEU VOTO</a>
+    <div class="fiscalize-subnav__links">
+      <a href="../">Guia do fiscal</a>
+      <a href="../conferir/">Confira seu BU</a>
+      <a href="../boletins/">Boletins enviados</a>
+      <a href="../resultado/" aria-current="page">Resultado dos boletins</a>
+    </div>
+  </div>
+</nav>
+
+<main class="largo">
+  <p class="eyebrow">2º TURNO · CONFERÊNCIA NACIONAL</p>
+  <h1>RESULTADO <span>DOS BOLETINS</span></h1>
+  <p class="intro">A apuração feita só com os boletins de urna que eleitores fotografaram na porta das seções e que já foram conferidos, um a um, com o TSE.</p>
+  <p class="credito">Conferência idealizada e coordenada por <strong>Rogerio Pires</strong> para a Revista Timeline · Siga no <a href="https://www.instagram.com/rogerrio/" target="_blank" rel="noopener noreferrer">Instagram @rogerrio</a> e no <a href="https://x.com/rogerrioX" target="_blank" rel="noopener noreferrer">X @rogerrioX</a></p>
+  <p class="atualizado" id="atualizado">Carregando…</p>
+
+  <section class="painel totalizacao" aria-labelledby="t-tot">
+    <div class="tot-topo">
+      <h2 id="t-tot">Brasil</h2>
+      <div class="tot-prog"><span id="tot-secoes">…</span><div class="barra fina"><div class="barra-fill neutra" id="tot-prog-fill"></div></div></div>
+    </div>
+    <div id="tot-corpo"></div>
+  </section>
+
+  <section class="painel" aria-labelledby="t-uf">
+    <h2 id="t-uf">Por estado</h2>
+    <p class="muted">Boletins conferidos em cada estado, ao lado do resultado oficial do TSE no estado inteiro. Toque em um estado para ver os municípios.</p>
+    <div class="tabela-rolagem"><table class="tabela res" id="tab-uf">
+      <thead><tr><th scope="col">Estado</th><th scope="col">Seções</th><th scope="col">Lula</th><th scope="col">Flávio</th><th scope="col" class="col-barra">Boletins conferidos</th><th scope="col">TSE no estado</th></tr></thead>
+      <tbody></tbody>
+    </table></div>
+  </section>
+
+  <section class="painel" aria-labelledby="t-mun" id="sec-mun">
+    <h2 id="t-mun">Por município</h2>
+    <div class="filtros dois">
+      <label>Estado<select id="m-uf"><option value="">Todos</option></select></label>
+      <label>Buscar município<input id="m-busca" placeholder="Digite o nome"></label>
+    </div>
+    <div class="tabela-rolagem"><table class="tabela res" id="tab-mun">
+      <thead><tr><th scope="col">Município</th><th scope="col">Seções</th><th scope="col">Lula</th><th scope="col">Flávio</th><th scope="col" class="col-barra">Boletins conferidos</th></tr></thead>
+      <tbody></tbody>
+    </table></div>
+    <div class="mais"><button class="btn" id="m-mais" hidden>Mostrar mais municípios</button></div>
+  </section>
+
+  <section class="painel">
+    <h2>Como ler este resultado</h2>
+    <p class="muted">Cada seção entra uma vez, com os números do boletim impresso pela urna. Todos os boletins somados aqui foram comparados com o TSE e são idênticos ao que foi publicado para a seção. Os boletins foram enviados voluntariamente por eleitores. Por isso este resultado não é uma amostra do país nem uma previsão: ele mostra o que diziam os papéis colados nas portas das seções que chegaram até nós.</p>
+    <div class="actions">
+      <a class="btn primary" href="https://forms.gle/6YfsatF9Z5hdLsFx9" target="_blank" rel="noopener noreferrer">Enviar a foto do seu boletim ↗</a>
+      <a class="btn" href="../boletins/">Ver os boletins um a um</a>
+    </div>
+  </section>
+
+  <section class="siga" aria-labelledby="t-siga">
+    <p class="eyebrow">ACOMPANHE A CONFERÊNCIA</p>
+    <h2 id="t-siga">Siga Rogerio Pires</h2>
+    <p>Os resultados desta conferência nacional, as análises dos dados do TSE e os próximos passos são publicados primeiro nas redes do Rogerio. Siga e compartilhe com quem também enviou o boletim.</p>
+    <div class="actions">
+      <a class="btn primary" href="https://www.instagram.com/rogerrio/" target="_blank" rel="noopener noreferrer">Seguir @rogerrio no Instagram ↗</a>
+      <a class="btn primary" href="https://x.com/rogerrioX" target="_blank" rel="noopener noreferrer">Seguir @rogerrioX no X ↗</a>
+    </div>
+  </section>
+</main>
+<footer>REVISTA TIMELINE · FISCALIZE SEU VOTO 2026<br>Conferência nacional dos boletins de urna por Rogerio Pires<br><a href="https://www.instagram.com/rogerrio/" target="_blank" rel="noopener noreferrer">Instagram @rogerrio</a> · <a href="https://x.com/rogerrioX" target="_blank" rel="noopener noreferrer">X @rogerrioX</a></footer>
+<script src="../assets/resultado.js?v=1" defer></script>
+</body>
+</html>

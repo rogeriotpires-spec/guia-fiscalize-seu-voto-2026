@@ -1,0 +1,32 @@
+.tot-topo{display:flex;justify-content:space-between;align-items:flex-end;gap:16px;flex-wrap:wrap}
+.tot-topo h2{font-size:28px;margin:0}
+.tot-prog{min-width:260px;flex:1;max-width:460px;font-size:13px;color:var(--mut);text-align:right}
+.barra.fina{height:6px;margin-top:6px}
+.barra-fill.neutra{background:var(--orange)}
+.tot-cands{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin:18px 0 12px}
+.tot-cand{border-radius:12px;padding:18px;display:flex;flex-direction:column;gap:2px}
+.tot-cand.lula{background:#3a1512;border:1px solid #C92B19}
+.tot-cand.flavio{background:#132447;border:1px solid #2f5bd3;text-align:right;align-items:flex-end}
+.tot-nome{font-weight:800;font-size:18px}
+.tot-part,.tot-votos,.tot-of{color:#d8d2cc;font-size:13px}
+.tot-pct{font-size:clamp(36px,8vw,58px);font-weight:900;line-height:1.05;font-variant-numeric:tabular-nums}
+.tot-of{margin-top:6px;opacity:.85}
+.dupla{display:flex;height:16px;border-radius:999px;overflow:hidden;background:#2f5bd3;min-width:90px}
+.dupla-lula{background:#C92B19;height:100%}
+.dupla-flavio{flex:1}
+.tabela.res td{vertical-align:middle}
+.tabela.res .num{text-align:right;font-variant-numeric:tabular-nums}
+.tabela.res .lula-c{color:#ff9d92;font-weight:800}
+.tabela.res .flavio-c{color:#9db8ff;font-weight:800}
+.tabela.res .col-barra{min-width:140px;width:30%}
+.tabela.res .of{color:var(--mut);font-size:13px;white-space:nowrap}
+.tabela.res td:nth-child(n+2){text-align:right}
+.tabela.res td.col-barra{text-align:left}
+.uf-nome{color:var(--mut);font-size:13px}
+tr.clicavel{cursor:pointer}
+tr.clicavel:hover td,tr.clicavel:focus td{background:#1f1f1f}
+tr.clicavel:focus{outline:2px solid var(--orange);outline-offset:-2px}
+.ver{color:var(--orange);font-size:12px}
+.filtros.dois{grid-template-columns:repeat(2,minmax(0,1fr));margin-bottom:12px}
+@media(max-width:560px){.tot-cands{grid-template-columns:1fr 1fr;gap:8px}.tot-cand{padding:12px}.tot-prog{text-align:left;max-width:none}.filtros.dois{grid-template-columns:1fr}}
+@media(max-width:560px){.tabela.res .uf-nome{display:none}.tabela.res .col-barra{display:none}.tabela.res th,.tabela.res td{padding:8px 5px}}
