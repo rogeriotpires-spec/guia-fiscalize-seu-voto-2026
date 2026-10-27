@@ -63,6 +63,7 @@ ROTULOS = {
     'via_digital': 'Descartado: via digital',
     'primeiro_turno': 'Descartado: 1º turno',
     'repetida': 'Descartado: foto repetida',
+    'na_fila': 'Na fila de conferência',
 }
 INTEGRIDADE = {
     'confere': 'Íntegro', 'diverge': 'Íntegro', 'nao_encontrada': 'Íntegro',
@@ -532,15 +533,20 @@ def main():
 
     feitos = 0
     limite = int(os.environ.get('LIMITE_ARQUIVOS', '100000'))
+    # tempo máximo de processamento por rodada: o que sobrar fica para a próxima
+    prazo = time.time() + 60 * float(os.environ.get('MINUTOS_MAX', '25'))
+    fila = novos[:limite]
     with cf.ThreadPoolExecutor(max_workers=int(os.environ.get('TRABALHADORES', '4'))) as ex:
-        for fid, res, img in ex.map(tarefa, novos[:limite]):
-            cache[h(fid)] = res
-            if img is not None:
-                imagens[h(fid)] = img
-            feitos += 1
-            if feitos % 25 == 0:
-                log(f'{feitos}/{len(novos)} arquivos processados')
-                json.dump(estado, open(ESTADO, 'w'), ensure_ascii=False, separators=(',', ':'))
+        for i in range(0, len(fila), 20):
+            if time.time() > prazo:
+                log(f'tempo da rodada esgotado; {len(fila) - i} arquivos ficam para a próxima')
+                break
+            for fid, res, img in ex.map(tarefa, fila[i:i + 20]):
+                cache[h(fid)] = res
+                if img is not None:
+                    imagens[h(fid)] = img
+                feitos += 1
+            log(f'{feitos}/{len(novos)} arquivos processados')
 
     # classificação por envio
     vistos_sha = {}
@@ -548,6 +554,12 @@ def main():
     for r, c in sorted(envios, key=lambda x: x[0]['ts']):
         arqs = [cache.get(h(f)) for f in c['arquivos']]
         shas = [a.get('sha') for a in arqs if a and a.get('sha')]
+        if any(a is None for a in arqs):
+            info = {'uf': c['uf'], 'mun': achar_municipio(c['uf'], c['municipio']), 'zona': inteiro(c['zona']),
+                    'secao': inteiro(c['secao']), 'lido': None, 'oficial': None, 'conta': None,
+                    'motivo': 'aguardando processamento', 'fonte': ''}
+            internos.append((r, c, 'na_fila', info, arqs))
+            continue
         st, info = classificar(r, c, arqs, revisao)
         chave_env = h(r['id'])
         if shas and all(s in vistos_sha for s in shas):

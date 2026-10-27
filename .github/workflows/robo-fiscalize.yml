@@ -40,7 +40,9 @@ jobs:
         env:
           PONTE_URL: ${{ vars.PONTE_URL }}
           PONTE_TOKEN: ${{ secrets.PONTE_TOKEN }}
-          LIMITE_ARQUIVOS: ${{ github.event.inputs.limite || '600' }}
+          LIMITE_ARQUIVOS: ${{ github.event.inputs.limite || '2000' }}
+          MINUTOS_MAX: '25'
+          TRABALHADORES: '10'
         run: python automacao/robo.py
       - name: Publicar
         run: |

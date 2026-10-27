@@ -7,7 +7,7 @@
   let dados = null, filtrados = [], mostrados = 0;
 
   const fmt = (n) => (n ?? 0).toLocaleString('pt-BR');
-  const grupo = (s) => (s === 'confere' || s === 'confere_numeros') ? 'confere' : DESCARTE.includes(s) ? 'descartado' : s;
+  const grupo = (s) => (s === 'confere' || s === 'confere_numeros') ? 'confere' : DESCARTE.includes(s) ? 'descartado' : s === 'na_fila' ? 'em_analise' : s;
   const classe = (s) => ({ confere: 'ok', em_analise: 'neutro', nao_encontrada: 'neutro', ilegivel: 'cinza', descartado: 'cinza' })[grupo(s)] || 'neutro';
 
   function el(tag, cls, txt) {
@@ -24,7 +24,7 @@
       ['Envios recebidos', fmt(p.envios), ''],
       ['Seções conferidas', fmt(p.secoes_conferidas), 'cada seção conta uma vez'],
       ['Conferem com o TSE', fmt(p.secoes_conferem), p.secoes_conferidas ? `${Math.round(100 * p.secoes_conferem / p.secoes_conferidas)}% das seções conferidas` : ''],
-      ['Em análise', fmt(soma(['em_analise', 'nao_encontrada'])), 'aguardando confirmação'],
+      ['Em análise', fmt(soma(['em_analise', 'nao_encontrada', 'na_fila'])), s.na_fila ? `${fmt(s.na_fila)} ainda na fila de leitura` : 'aguardando confirmação'],
       ['Ilegíveis', fmt(s.ilegivel || 0), 'pedimos nova foto'],
       ['Descartados', fmt(soma(DESCARTE)), 'não é boletim, 1º turno, repetidas, via digital'],
     ];
