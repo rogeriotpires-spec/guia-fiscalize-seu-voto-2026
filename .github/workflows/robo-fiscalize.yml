@@ -1,0 +1,49 @@
+name: Robô Fiscalize (conferência dos BUs enviados)
+
+# Roda a cada 30 minutos. Para mudar o intervalo, altere o cron abaixo.
+# Para pausar sem mexer no código: crie a variável ROBO_PAUSADO = sim
+# (Settings > Secrets and variables > Actions > Variables).
+on:
+  schedule:
+    - cron: '7,37 * * * *'
+  workflow_dispatch:
+    inputs:
+      limite:
+        description: 'Máximo de arquivos novos nesta rodada'
+        default: '600'
+
+permissions:
+  contents: write
+
+concurrency:
+  group: robo-fiscalize
+  cancel-in-progress: false
+
+jobs:
+  conferir:
+    if: vars.ROBO_PAUSADO != 'sim'
+    runs-on: ubuntu-latest
+    timeout-minutes: 240
+    steps:
+      - uses: actions/checkout@v4
+      - name: Instalar OCR
+        run: sudo apt-get update -qq && sudo apt-get install -y -qq tesseract-ocr tesseract-ocr-por > /dev/null
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Instalar bibliotecas
+        run: pip install -q opencv-python-headless==4.10.0.84 zxing-cpp==3.1.1 pymupdf==2.0 pytesseract==0.3.13 pillow==10.4.0 requests==2.32.3 numpy==1.26.4
+      - name: Conferir os boletins
+        env:
+          PONTE_URL: ${{ vars.PONTE_URL }}
+          PONTE_TOKEN: ${{ secrets.PONTE_TOKEN }}
+          LIMITE_ARQUIVOS: ${{ github.event.inputs.limite || '600' }}
+        run: python automacao/robo.py
+      - name: Publicar
+        run: |
+          git config user.name "Robô Fiscalize"
+          git config user.email "robo-fiscalize@users.noreply.github.com"
+          git add data/bus bus/img automacao/estado.json
+          if git diff --cached --quiet; then echo "nada novo"; exit 0; fi
+          git commit -qm "Robô: atualiza a conferência dos boletins enviados"
+          for i in 1 2 3; do git pull -q --rebase origin main && git push -q origin HEAD:main && break; sleep 5; done

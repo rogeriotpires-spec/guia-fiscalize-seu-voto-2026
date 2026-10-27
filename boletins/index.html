@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Boletins enviados | Fiscalize Seu Voto 2026 | Revista Timeline</title>
+<meta name="description" content="Placar da conferência nacional: boletins de urna do 2º turno enviados por eleitores e comparados com os dados publicados pelo TSE.">
+<meta property="og:title" content="Conferência nacional dos boletins de urna | Revista Timeline">
+<meta property="og:description" content="Eleitores enviaram fotos dos boletins das suas seções. Veja quantos já foram comparados com o TSE e procure o seu.">
+<meta property="og:image" content="https://rogeriotpires-spec.github.io/guia-fiscalize-seu-voto-2026/assets/pagina-6.png">
+<link rel="stylesheet" href="../assets/timeline-header.css?v=1">
+<link rel="stylesheet" href="../assets/conferir.css?v=1">
+<link rel="stylesheet" href="../assets/boletins.css?v=1">
+</head>
+<body>
+<header class="timeline-sitebar" aria-label="Cabeçalho da Revista Timeline">
+  <div class="timeline-sitebar__masthead">
+    <a class="timeline-sitebar__brand" href="https://www.revistatimeline.com/" aria-label="Revista Timeline, página inicial">Timeline</a>
+    <div class="timeline-sitebar__tools"><a class="timeline-sitebar__return" href="../">← Guia Fiscalize</a></div>
+  </div>
+  <div class="timeline-sitebar__navigation">
+    <nav class="timeline-sitebar__links" aria-label="Menu principal da Revista Timeline">
+      <a href="https://www.revistatimeline.com/">Início</a>
+      <a href="https://observatorio.revistatimeline.com/">Observatório Eleitoral</a>
+      <a href="../">Fiscalize Seu Voto</a>
+      <a href="../conferir/">Confira seu BU</a>
+      <a href="./" aria-current="page">Boletins enviados</a>
+      <a href="https://www.instagram.com/_revistatimeline/" target="_blank" rel="noopener noreferrer">Instagram</a>
+    </nav>
+  </div>
+</header>
+
+<main class="largo">
+  <p class="eyebrow">2º TURNO · CONFERÊNCIA NACIONAL</p>
+  <h1>BOLETINS <span>ENVIADOS</span></h1>
+  <p class="intro">Eleitores de todo o país enviaram fotos do boletim de urna colado na porta da sua seção. Cada foto é lida e comparada com o resultado que o TSE publicou para aquela seção.</p>
+  <p class="atualizado" id="atualizado">Carregando…</p>
+
+  <section class="placar" id="placar" aria-label="Placar da conferência"></section>
+
+  <section class="painel" aria-labelledby="t-busca">
+    <h2 id="t-busca">Procure o seu boletim</h2>
+    <p class="muted">Escolha o estado e o município. Se souber, informe também a zona e a seção.</p>
+    <div class="filtros">
+      <label>Estado<select id="f-uf"><option value="">Todos</option></select></label>
+      <label>Município<select id="f-mun" disabled><option value="">Todos</option></select></label>
+      <label>Zona<input id="f-zona" inputmode="numeric" pattern="[0-9]*" maxlength="4" placeholder="Todas"></label>
+      <label>Seção<input id="f-secao" inputmode="numeric" pattern="[0-9]*" maxlength="4" placeholder="Todas"></label>
+      <label>Resultado<select id="f-status">
+        <option value="">Todos</option>
+        <option value="confere">Confere com o TSE</option>
+        <option value="em_analise">Em análise</option>
+        <option value="nao_encontrada">Seção não encontrada</option>
+        <option value="ilegivel">Ilegível</option>
+        <option value="descartado">Descartados</option>
+      </select></label>
+    </div>
+    <p class="contagem" id="contagem" role="status" aria-live="polite"></p>
+  </section>
+
+  <section id="lista" class="lista" aria-label="Boletins"></section>
+  <div class="mais"><button class="btn" id="mais" hidden>Mostrar mais</button></div>
+
+  <section class="painel">
+    <h2>Não achou o seu?</h2>
+    <p class="muted">Os envios entram na conferência automaticamente, a cada meia hora. Se o seu aparece como ilegível, mande uma foto nova, de perto, com boa luz e com os QR Codes do final inteiros.</p>
+    <div class="actions">
+      <a class="btn primary" href="https://forms.gle/6YfsatF9Z5hdLsFx9" target="_blank" rel="noopener noreferrer">Enviar foto do boletim ↗</a>
+      <a class="btn" href="../conferir/">Conferir eu mesmo agora</a>
+    </div>
+  </section>
+
+  <details class="sobre">
+    <summary>Como funciona esta conferência, e o que ela prova</summary>
+    <p><strong>Confere com o TSE:</strong> os números do boletim (Lula, Flávio Bolsonaro, brancos e nulos) são idênticos aos publicados pelo TSE para a seção. Quando o QR Code foi lido, a comparação vem dele; quando não, os números foram lidos no papel e conferidos um a um.</p>
+    <p><strong>Em análise:</strong> o boletim foi identificado, mas os números ainda não foram confirmados com segurança. Toda diferença encontrada é conferida manualmente antes de qualquer publicação, para que um erro de leitura não vire notícia falsa.</p>
+    <p><strong>Descartados:</strong> imagens que não são boletim, boletins do 1º turno, fotos repetidas e a "via digital" do aplicativo, que já é a versão do próprio TSE e por isso não serve de comparação independente.</p>
+    <p>Esta conferência mostra se o resultado impresso pela urna chegou ao TSE exatamente igual. Ela não diz se a urna contou certo os votos que recebeu, porque o boletim é impresso pela própria urna. É a parte do caminho que qualquer eleitor pode verificar com uma foto.</p>
+    <p>Nenhum dado de quem enviou aparece aqui. As fotos são renomeadas e publicadas sem os dados do celular, e imagens em que aparece o rosto de alguém ficam de fora.</p>
+  </details>
+</main>
+<footer>REVISTA TIMELINE · FISCALIZE SEU VOTO 2026<br>Instagram: @rogerrio · X: @rogerrioX</footer>
+<div class="visor" id="visor" hidden role="dialog" aria-modal="true" aria-label="Foto do boletim">
+  <button class="fechar" id="visor-fechar" aria-label="Fechar">✕</button>
+  <img id="visor-img" alt="Foto do boletim de urna">
+</div>
+<script src="../assets/boletins.js?v=1" defer></script>
+</body>
+</html>
