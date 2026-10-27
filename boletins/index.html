@@ -10,7 +10,7 @@
 <meta property="og:image" content="https://rogeriotpires-spec.github.io/guia-fiscalize-seu-voto-2026/assets/pagina-6.png">
 <link rel="stylesheet" href="../assets/timeline-header.css?v=1">
 <link rel="stylesheet" href="../assets/conferir.css?v=1">
-<link rel="stylesheet" href="../assets/boletins.css?v=1">
+<link rel="stylesheet" href="../assets/boletins.css?v=2">
 </head>
 <body>
 <header class="timeline-sitebar" aria-label="Cabeçalho da Revista Timeline">
@@ -34,9 +34,16 @@
   <p class="eyebrow">2º TURNO · CONFERÊNCIA NACIONAL</p>
   <h1>BOLETINS <span>ENVIADOS</span></h1>
   <p class="intro">Eleitores de todo o país enviaram fotos do boletim de urna colado na porta da sua seção. Cada foto é lida e comparada com o resultado que o TSE publicou para aquela seção.</p>
+  <p class="credito">Conferência idealizada e coordenada por <strong>Rogerio Pires</strong> para a Revista Timeline · Siga no <a href="https://www.instagram.com/rogerrio/" target="_blank" rel="noopener noreferrer">Instagram @rogerrio</a> e no <a href="https://x.com/rogerrioX" target="_blank" rel="noopener noreferrer">X @rogerrioX</a></p>
   <p class="atualizado" id="atualizado">Carregando…</p>
 
   <section class="placar" id="placar" aria-label="Placar da conferência"></section>
+
+  <section class="painel apuracao" aria-labelledby="t-apur">
+    <h2 id="t-apur">Apuração dos boletins conferidos</h2>
+    <p class="muted" id="apur-sub">Soma dos boletins de urna enviados pelos eleitores que já foram conferidos com o TSE. Cada seção conta uma vez.</p>
+    <div id="apur-corpo"></div>
+  </section>
 
   <section class="painel" aria-labelledby="t-busca">
     <h2 id="t-busca">Procure o seu boletim</h2>
@@ -70,6 +77,16 @@
     </div>
   </section>
 
+  <section class="siga" aria-labelledby="t-siga">
+    <p class="eyebrow">ACOMPANHE A CONFERÊNCIA</p>
+    <h2 id="t-siga">Siga Rogerio Pires</h2>
+    <p>Os resultados desta conferência nacional, as análises dos dados do TSE e os próximos passos são publicados primeiro nas redes do Rogerio. Siga e compartilhe com quem também enviou o boletim.</p>
+    <div class="actions">
+      <a class="btn primary" href="https://www.instagram.com/rogerrio/" target="_blank" rel="noopener noreferrer">Seguir @rogerrio no Instagram ↗</a>
+      <a class="btn primary" href="https://x.com/rogerrioX" target="_blank" rel="noopener noreferrer">Seguir @rogerrioX no X ↗</a>
+    </div>
+  </section>
+
   <details class="sobre">
     <summary>Como funciona esta conferência, e o que ela prova</summary>
     <p><strong>Confere com o TSE:</strong> os números do boletim (Lula, Flávio Bolsonaro, brancos e nulos) são idênticos aos publicados pelo TSE para a seção. Quando o QR Code foi lido, a comparação vem dele; quando não, os números foram lidos no papel e conferidos um a um.</p>
@@ -79,11 +96,11 @@
     <p>Nenhum dado de quem enviou aparece aqui. As fotos são renomeadas e publicadas sem os dados do celular, e imagens em que aparece o rosto de alguém ficam de fora.</p>
   </details>
 </main>
-<footer>REVISTA TIMELINE · FISCALIZE SEU VOTO 2026<br>Instagram: @rogerrio · X: @rogerrioX</footer>
+<footer>REVISTA TIMELINE · FISCALIZE SEU VOTO 2026<br>Conferência nacional dos boletins de urna por Rogerio Pires<br><a href="https://www.instagram.com/rogerrio/" target="_blank" rel="noopener noreferrer">Instagram @rogerrio</a> · <a href="https://x.com/rogerrioX" target="_blank" rel="noopener noreferrer">X @rogerrioX</a></footer>
 <div class="visor" id="visor" hidden role="dialog" aria-modal="true" aria-label="Foto do boletim">
   <button class="fechar" id="visor-fechar" aria-label="Fechar">✕</button>
   <img id="visor-img" alt="Foto do boletim de urna">
 </div>
-<script src="../assets/boletins.js?v=1" defer></script>
+<script src="../assets/boletins.js?v=2" defer></script>
 </body>
 </html>

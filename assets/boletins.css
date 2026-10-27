@@ -38,3 +38,26 @@ main.largo{max-width:1080px}
 .visor .fechar{position:absolute;top:12px;right:12px;background:#222;color:#fff;border:1px solid #555;border-radius:50%;width:44px;height:44px;font-size:20px;cursor:pointer}
 @media(max-width:900px){.filtros{grid-template-columns:repeat(2,minmax(0,1fr))}.lista{grid-template-columns:1fr}}
 @media(max-width:560px){.placar{grid-template-columns:repeat(2,minmax(0,1fr))}main.largo{padding-left:16px;padding-right:16px}}
+.credito{color:#cfc9c3;font-size:14px;margin:4px 0 0}
+.credito a,footer a{color:var(--orange)}
+.apuracao h2{margin-bottom:2px}
+.cand{margin:16px 0}
+.cand-cab{display:flex;justify-content:space-between;align-items:flex-end;gap:12px;margin-bottom:6px}
+.cand-nome{display:flex;flex-direction:column}
+.cand-nome strong{font-size:18px}
+.cand-nome span,.cand-num span{color:var(--mut);font-size:13px}
+.cand-num{display:flex;flex-direction:column;align-items:flex-end;font-variant-numeric:tabular-nums}
+.cand-num strong{font-size:clamp(24px,5vw,32px);font-weight:900;line-height:1.1}
+.barra{height:14px;background:#262626;border-radius:999px;overflow:hidden}
+.barra-fill{height:100%;border-radius:999px}
+.cand.lula .barra-fill{background:#C92B19}
+.cand.flavio .barra-fill{background:#2f5bd3}
+.apur-resumo{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin:18px 0 6px;padding:0}
+.apur-resumo div{background:#111;border:1px solid var(--line);border-radius:10px;padding:10px}
+.apur-resumo dt{color:var(--mut);font-size:12px}
+.apur-resumo dd{margin:2px 0 0;font-weight:800;font-variant-numeric:tabular-nums}
+.apur-ref{color:var(--mut);font-size:13px;margin:10px 0 0}
+.siga{background:linear-gradient(135deg,#2a1406,#171717 60%);border:1px solid #6b3a14;border-radius:14px;padding:22px;margin:18px 0}
+.siga h2{margin:4px 0 6px;font-size:26px}
+.siga p{color:#ddd;max-width:640px}
+@media(max-width:560px){.apur-resumo{grid-template-columns:repeat(2,minmax(0,1fr))}}

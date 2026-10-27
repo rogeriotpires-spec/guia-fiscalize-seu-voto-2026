@@ -64,8 +64,51 @@
       (isNaN(zn) || i.zona === zn) && (isNaN(se) || i.secao === se) &&
       (!st || grupo(i.status) === st));
     mostrados = 0; $('lista').textContent = '';
+    apuracao(uf, mun, zn, se);
     $('contagem').textContent = filtrados.length ? `${fmt(filtrados.length)} ${filtrados.length > 1 ? 'envios encontrados' : 'envio encontrado'}` : 'Nenhum envio encontrado com esses filtros.';
     mais();
+  }
+
+  const BRASIL = { lula: 64256232, flavio: 59826041 };
+  function apuracao(uf, mun, zn, se) {
+    const vistos = new Map();
+    dados.itens.forEach(i => {
+      if (!(i.status === 'confere' || i.status === 'confere_numeros') || !i.lido) return;
+      if ((uf && i.uf !== uf) || (mun && i.mun !== mun) || (!isNaN(zn) && i.zona !== zn) || (!isNaN(se) && i.secao !== se)) return;
+      const k = `${i.uf}-${i.mun}-${i.zona}-${i.secao}`;
+      if (!vistos.has(k)) vistos.set(k, i.lido);
+    });
+    const t = [0, 0, 0, 0];
+    vistos.forEach(l => l.forEach((v, k) => { t[k] += v || 0; }));
+    const validos = t[0] + t[1];
+    const pct = (v, b) => b ? (100 * v / b).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + '%' : '0%';
+    let onde = 'em todo o país';
+    if (uf) {
+      const m = mun && dados.itens.find(i => i.mun === mun);
+      onde = m ? `em ${m.municipio} (${uf})` : `em ${uf}`;
+      if (!isNaN(zn)) onde += `, zona ${zn}`;
+      if (!isNaN(se)) onde += `, seção ${se}`;
+    }
+    $('apur-sub').textContent = `Soma dos boletins de urna enviados por eleitores ${onde} e já conferidos com o TSE. Cada seção conta uma vez.`;
+    const box = $('apur-corpo'); box.textContent = '';
+    if (!vistos.size) { box.append(el('p', 'muted', 'Ainda não há boletins conferidos para essa seleção.')); return; }
+    const cand = [['Lula', 'PT · 13', t[0], 'lula'], ['Flávio Bolsonaro', 'PL · 22', t[1], 'flavio']];
+    cand.forEach(([nome, part, v, cls]) => {
+      const lin = el('div', 'cand ' + cls);
+      const cab = el('div', 'cand-cab');
+      const n = el('div', 'cand-nome'); n.append(el('strong', '', nome), el('span', '', part));
+      const num = el('div', 'cand-num'); num.append(el('strong', '', pct(v, validos)), el('span', '', fmt(v) + ' votos'));
+      cab.append(n, num);
+      const barra = el('div', 'barra'); const f = el('div', 'barra-fill'); f.style.width = (validos ? 100 * v / validos : 0) + '%';
+      barra.append(f); lin.append(cab, barra); box.append(lin);
+    });
+    const tot = t[0] + t[1] + t[2] + t[3];
+    const rodape = el('dl', 'apur-resumo');
+    [['Seções', fmt(vistos.size)], ['Votos válidos', fmt(validos)], ['Brancos', `${fmt(t[2])} (${pct(t[2], tot)})`], ['Nulos', `${fmt(t[3])} (${pct(t[3], tot)})`]]
+      .forEach(([a, b]) => { const d = el('div'); d.append(el('dt', '', a), el('dd', '', b)); rodape.append(d); });
+    box.append(rodape);
+    const bv = BRASIL.lula + BRASIL.flavio;
+    box.append(el('p', 'apur-ref', `Resultado oficial do TSE no Brasil: Lula ${pct(BRASIL.lula, bv)} · Flávio Bolsonaro ${pct(BRASIL.flavio, bv)}. Os boletins acima foram enviados voluntariamente e não são uma amostra do país: servem para conferir seção por seção, não para prever o total.`));
   }
 
   function cartao(i) {
@@ -134,7 +177,9 @@
   fetch('../data/bus/painel.json', { cache: 'no-cache' })
     .then(r => { if (!r.ok) throw new Error(); return r.json(); })
     .then(d => {
-      dados = d; placar(); opcoesUF();
+      dados = d;
+      dados.itens.sort((a, b) => (a.status === 'na_fila') - (b.status === 'na_fila'));
+      placar(); opcoesUF();
       const q = new URLSearchParams(location.search);
       if (q.get('uf')) { $('f-uf').value = q.get('uf').toUpperCase(); opcoesMun(); }
       if (q.get('mun')) $('f-mun').value = q.get('mun');
