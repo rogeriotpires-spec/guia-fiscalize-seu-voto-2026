@@ -48,7 +48,7 @@ jobs:
         run: |
           git config user.name "Robô Fiscalize"
           git config user.email "robo-fiscalize@users.noreply.github.com"
-          git add data/bus bus/img automacao/estado.json automacao/depuracao 2>/dev/null || git add data/bus bus/img automacao/estado.json
+          git add -A data/bus bus/img automacao/estado.json automacao/depuracao
           if git diff --cached --quiet; then echo "nada novo"; exit 0; fi
           git commit -qm "Robô: atualiza a conferência dos boletins enviados"
           for i in 1 2 3; do git pull -q --rebase origin main && git push -q origin HEAD:main && break; sleep 5; done

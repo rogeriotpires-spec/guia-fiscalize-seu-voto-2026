@@ -336,7 +336,8 @@ def resumo_ocr(texto):
                 if cod and len(ns) > 1 and ns[0] in (13, 22):
                     ns = ns[1:]
                 nums.setdefault(nome, []).extend(ns)
-    return {'kw': sum(1 for p in PALAVRAS_BU if p in t), 'letras': len(re.findall(r'[a-z]{3,}', t)),
+    sens = any(p in t for p in ('comprovante', 'titulo eleitoral', 'credencial', 'cpf', 'identidade', 'fiscal'))
+    return {'kw': sum(1 for p in PALAVRAS_BU if p in t), 'letras': len(re.findall(r'[a-z]{3,}', t)), 'sensivel': sens,
             'turno1': ('04/10/2026' in t or '1o turno' in t or '1 turno' in t), 'nums': nums}
 
 
@@ -626,7 +627,8 @@ def main():
                     continue
                 nome = h('img' + f, 20)
                 arq = os.path.join(PASTA_IMG, nome + '.jpg')
-                eh_bu = bool(a.get('qr')) or a.get('ocr', {}).get('kw', 0) >= 2
+                # só publica a foto que tem o QR Code do boletim (evita comprovantes, crachás, documentos)
+                eh_bu = bool(a.get('qr')) and not a.get('ocr', {}).get('sensivel')
                 if not eh_bu:
                     continue
                 if os.path.exists(arq):
@@ -655,6 +657,12 @@ def main():
                 lista.append(salvar_publica(mini, nome))
         except Exception:  # noqa: BLE001
             pass
+    # apaga do site qualquer foto que não esteja mais em uso
+    usadas = {os.path.basename(f) for it in itens for f in it['fotos']}
+    if os.path.isdir(PASTA_IMG):
+        for nome in os.listdir(PASTA_IMG):
+            if nome not in usadas:
+                os.remove(os.path.join(PASTA_IMG, nome))
     cont = {}
     for it in itens:
         cont[it['status']] = cont.get(it['status'], 0) + 1
