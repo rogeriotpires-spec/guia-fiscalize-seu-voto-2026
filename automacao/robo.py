@@ -17,7 +17,6 @@ import io
 import json
 import os
 import re
-import sys
 import time
 import unicodedata
 import urllib.parse
@@ -47,7 +46,8 @@ PASTA_IMG = os.path.join(RAIZ, 'bus', 'img')
 BASE = os.path.join(RAIZ, 'data', '2t')
 VERSAO = 3  # muda quando a lógica de classificação muda (reprocessa o cache)
 
-URL = os.environ.get('PONTE_URL', '')
+_CFG = os.path.join(RAIZ, 'automacao', 'config.json')
+URL = os.environ.get('PONTE_URL') or (json.load(open(_CFG)).get('ponte_url', '') if os.path.exists(_CFG) else '')
 TOKEN = os.environ.get('PONTE_TOKEN', '')
 FORM_LINK = 'https://forms.gle/6YfsatF9Z5hdLsFx9'
 SITE = 'https://fiscalize.revistatimeline.com/boletins/'
@@ -500,7 +500,8 @@ def classificar(resp, c, arqs, revisao):
 # ----------------------------------------------------------------- principal
 def main():
     if not URL or not TOKEN:
-        sys.exit('Defina PONTE_URL e PONTE_TOKEN.')
+        log('Ponte ainda não configurada (falta a URL ou a senha). Nada a fazer.')
+        return
     estado = json.load(open(ESTADO)) if os.path.exists(ESTADO) else {'arquivos': {}}
     cache = estado['arquivos']
     respostas = ponte_get(acao='respostas')
