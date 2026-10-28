@@ -34,7 +34,16 @@ def parse_log(texto, datas):
     tipo = None   # tipo da habilitação em curso
     mes_i = -1
     turno_atual = None
-    for ln in texto.split('\n'):
+    linhas = texto.split('\n')
+    if '\n' in texto and texto.count('Início das operações do logd') > 1:
+        # mais de um log (urna de contingência): ordena cronologicamente pelos campos de data/hora
+        def chave_t(ln):
+            m = RE_LINHA.match(ln)
+            if not m: return (0, 0, 0, 0, 0, 0)
+            dd, mm, yy, H, M, S = m.groups()[:6]
+            return (int(yy), int(mm), int(dd), int(H), int(M), int(S))
+        linhas = sorted(linhas, key=chave_t)
+    for ln in linhas:
         m = RE_LINHA.match(ln)
         if not m:
             continue
@@ -111,6 +120,20 @@ def compacta(resumo):
     return resumo
 
 
+def extrai_logs(dados, prof=0):
+    """Devolve a lista de textos logd.dat dentro do .jez, incluindo os .jez aninhados
+    (log da urna original quando houve troca por urna de contingência)."""
+    out = []
+    with zipfile.ZipFile(io.BytesIO(dados)) as z:
+        for nome in z.namelist():
+            raw = z.read(nome)
+            if nome.lower().endswith('.jez') and prof < 3:
+                out.extend(extrai_logs(raw, prof + 1))
+            elif nome.lower().endswith('.dat') or nome.lower().endswith('.txt'):
+                out.append(raw.decode('latin-1'))
+    return out
+
+
 class Coletor:
     def __init__(self, pasta, pleito, ano, datas, workers):
         self.pasta = pasta
@@ -180,14 +203,13 @@ class Coletor:
         if jez is None:
             return chave, 'sem_log', None
         try:
-            with zipfile.ZipFile(io.BytesIO(jez)) as z:
-                nome = z.namelist()[0]
-                texto = z.read(nome).decode('latin-1')
+            textos = extrai_logs(jez)
+            texto = '\n'.join(textos)
         except Exception:
             return chave, 'zip_ruim', None
         resumo = compacta(parse_log(texto, self.datas))
         reg = {'uf': uf.upper(), 'mun': mun, 'zn': zn, 'se': se, 'off': OFF.get(uf.upper(), 0),
-               'sha': hashlib.sha256(jez).hexdigest(), 'arq': arq, 'bytes': len(jez),
+               'sha': hashlib.sha256(jez).hexdigest(), 'arq': arq, 'bytes': len(jez), 'logs': len(textos),
                'gerado': j.get('dtgeracao') or j.get('dg'), 'r': resumo}
         return chave, 'ok', reg
 
