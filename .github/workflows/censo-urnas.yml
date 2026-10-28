@@ -27,6 +27,7 @@ jobs:
           git config user.name robo-censo && git config user.email robo@users.noreply.github.com
           if git fetch -q origin censo-parte-${{ matrix.parte }} 2>/dev/null; then
             git checkout -q -B trabalho FETCH_HEAD
+            git checkout -q origin/censo -- coleta_logs.py roda_parte.py partes
           else
             git checkout -q -B trabalho
           fi
