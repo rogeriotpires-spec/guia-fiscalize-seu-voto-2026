@@ -159,7 +159,7 @@ class Coletor:
         chave = f'{uf}-{mun}-{zn}-{se}'
         p = self.pleito
         base = f'{BASE}/ele{self.ano}/arquivo-urna/{p}/dados/{uf}/{mun}/{zn}/{se}'
-        code, aux = self.get(f'{base}/p000{p}-{uf}-m{mun}-z{zn}-s{se}-aux.json')
+        code, aux = self.get(f'{base}/p{p:06d}-{uf}-m{mun}-z{zn}-s{se}-aux.json')
         if aux is None:
             return chave, 'sem_aux', None
         try:
@@ -236,7 +236,7 @@ def descobre_pleito(ano, uf, mun, zn, se):
     """Tenta achar o código do pleito (p000NNN) testando o aux.json de uma seção conhecida."""
     uf = uf.lower()
     for p in list(range(400, 700)) + list(range(100, 400)):
-        url = f'{BASE}/ele{ano}/arquivo-urna/{p}/dados/{uf}/{mun}/{zn}/{se}/p000{p}-{uf}-m{mun}-z{zn}-s{se}-aux.json'
+        url = f'{BASE}/ele{ano}/arquivo-urna/{p}/dados/{uf}/{mun}/{zn}/{se}/p{p:06d}-{uf}-m{mun}-z{zn}-s{se}-aux.json'
         try:
             req = urllib.request.Request(url, headers={'User-Agent': UA})
             with urllib.request.urlopen(req, timeout=30) as r:
