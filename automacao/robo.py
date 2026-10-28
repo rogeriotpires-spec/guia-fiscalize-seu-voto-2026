@@ -342,6 +342,23 @@ def resumo_ocr(texto):
 
 
 # ----------------------------------------------------------------- BU
+def chave_bu(textos):
+    """Identidade do boletim pelo QR Code: seção + votos (mesma do site)."""
+    g = {}
+    for t in textos:
+        if not t.startswith('QRBU:'):
+            continue
+        for tk in t.split():
+            if ':' in tk:
+                k, v = tk.split(':', 1)
+                g.setdefault(k, v)
+    campos = [g.get(k) for k in ('UNFE', 'MUNI', 'ZONA', 'SECA', '13', '22', 'BRAN', 'NULO')]
+    if any(c is None for c in campos):
+        return ''
+    chave = '-'.join(str(int(c)) if c.isdigit() else c.upper() for c in campos)
+    return hashlib.sha256(('bu:' + chave).encode()).hexdigest()
+
+
 def montar_bu(textos):
     frs = {}
     total = None
@@ -681,7 +698,8 @@ def main():
     json.dump({'atualizado': agora, 'placar': placar, 'rotulos': ROTULOS, 'itens': itens[::-1]},
               open(SAIDA, 'w'), ensure_ascii=False, separators=(',', ':'))
     shas = sorted({a['sha'] for a in cache.values() if a.get('sha')})
-    json.dump({'atualizado': agora, 'shas': shas}, open(os.path.join(os.path.dirname(SAIDA), 'shas.json'), 'w'), separators=(',', ':'))
+    bus = sorted({chave_bu(a.get('qr', [])) for a in cache.values()} - {''})
+    json.dump({'atualizado': agora, 'shas': shas, 'bus': bus}, open(os.path.join(os.path.dirname(SAIDA), 'shas.json'), 'w'), separators=(',', ':'))
     json.dump(estado, open(ESTADO, 'w'), ensure_ascii=False, separators=(',', ':'))
     log('placar', json.dumps(placar, ensure_ascii=False))
 

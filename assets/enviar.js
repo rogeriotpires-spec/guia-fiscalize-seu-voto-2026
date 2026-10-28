@@ -151,7 +151,14 @@
 
   // ---------- envio ----------
   const sha256 = async (blob) => { try { const h = await crypto.subtle.digest('SHA-256', await blob.arrayBuffer()); return [...new Uint8Array(h)].map(x => x.toString(16).padStart(2, '0')).join(''); } catch (_) { return ''; } };
-  let painel = null, shasPub = null;
+  let painel = null, shasPub = null, busPub = null;
+  async function chaveBU() {
+    const g = interpretar(arquivos.flatMap(a => a.qr));
+    const campos = ['UNFE', 'MUNI', 'ZONA', 'SECA', '13', '22', 'BRAN', 'NULO'].map(k => g[k]);
+    if (campos.some(c => c == null)) return '';
+    const chave = campos.map(c => /^\d+$/.test(c) ? String(+c) : c.toUpperCase()).join('-');
+    try { const h = await crypto.subtle.digest('SHA-256', new TextEncoder().encode('bu:' + chave)); return [...new Uint8Array(h)].map(x => x.toString(16).padStart(2, '0')).join(''); } catch (_) { return ''; }
+  }
   async function jaCadastrado(uf, mun, zona, secao) {
     try {
       if (!painel) painel = await fetch('../data/bus/painel.json', { cache: 'no-cache' }).then(r => r.json());
@@ -189,14 +196,15 @@
     // 1) mesma foto já conhecida pela conferência? (lista pública de assinaturas)
     const shas = [];
     for (const a of arquivos) { for (const bl of [a.original, a.blob]) { const h = bl ? await sha256(bl) : ''; if (h) shas.push(h); } }
+    const qrkey = await chaveBU();
     if (!forcar) {
       try {
-        if (!shasPub) shasPub = new Set((await fetch('../data/bus/shas.json', { cache: 'no-cache' }).then(r => r.json())).shas || []);
-        if (shas.some(h => shasPub.has(h))) { btn.disabled = false; btn.textContent = rotulo; repetido(null, null, 'foto'); return; }
+        if (!shasPub) { const d = await fetch('../data/bus/shas.json', { cache: 'no-cache' }).then(r => r.json()); shasPub = new Set(d.shas || []); busPub = new Set(d.bus || []); }
+        if (shas.some(h => shasPub.has(h)) || (qrkey && busPub.has(qrkey))) { btn.disabled = false; btn.textContent = rotulo; repetido(null, null, 'foto'); return; }
       } catch (_) { /* sem lista */ }
       // 2) checagem no servidor, sem subir as fotos
       try {
-        const r0 = await fetch(PONTE, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify({ acao: 'checar', uf, municipio: mun, zona, secao, shas }), redirect: 'follow' });
+        const r0 = await fetch(PONTE, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify({ acao: 'checar', uf, municipio: mun, zona, secao, shas, qrkey }), redirect: 'follow' });
         const d0 = await r0.json();
         if (d0.erro === 'repetido') { btn.disabled = false; btn.textContent = rotulo; repetido(d0.quando, null, d0.motivo); return; }
       } catch (_) { /* segue */ }
@@ -211,7 +219,7 @@
       const lista = [];
       for (const a of arquivos) lista.push({ nome: a.nome.slice(0, 80), tipo: a.tipo, b64: await b64(a.blob) });
       const corpo = {
-        acao: 'enviar', uf, municipio: mun, zona, secao, shas, forcar,
+        acao: 'enviar', uf, municipio: mun, zona, secao, shas, qrkey, forcar,
         turno: (document.querySelector('input[name=turno]:checked') || {}).value === '1' ? '1º turno' : '2º turno',
         nome: $('nome').value.trim(), whats: $('whats').value.trim(), site: $('site').value, arquivos: lista,
       };

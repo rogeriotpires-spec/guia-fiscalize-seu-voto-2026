@@ -60,13 +60,15 @@ function checar_(b) {
   const limpa = (v, n) => String(v == null ? '' : v).replace(/[\r\n\t]/g, ' ').trim().slice(0, n);
   const uf = limpa(b.uf, 2).toUpperCase(), mun = limpa(b.municipio, 80), zona = limpa(b.zona, 4), secao = limpa(b.secao, 4);
   const shas = (b.shas || []).map(String).filter(x => /^[0-9a-f]{64}$/.test(x));
+  const qrkey = /^[0-9a-f]{64}$/.test(String(b.qrkey || '')) ? String(b.qrkey) : '';
   const sh = planilhaEnvios_().getSheetByName('Envios');
   if (!sh || sh.getLastRow() < 2) return { ok: true };
-  const v = sh.getRange(2, 1, sh.getLastRow() - 1, 12).getValues();
+  const v = sh.getRange(2, 1, sh.getLastRow() - 1, 13).getValues();
   let secaoIgual = null;
   for (const r of v) {
     const quando = r[1] instanceof Date ? r[1].toISOString() : String(r[1]);
     if (shas.length && String(r[11]).split(',').some(x => shas.indexOf(x) >= 0)) return { erro: 'repetido', motivo: 'foto', quando: quando };
+    if (qrkey && String(r[12]) === qrkey) return { erro: 'repetido', motivo: 'foto', quando: quando };
     if (String(r[2]) === uf && String(r[4]) === zona && String(r[5]) === secao && String(r[3]).toUpperCase().replace(/\s+/g, ' ') === mun.toUpperCase().replace(/\s+/g, ' ')) secaoIgual = quando;
   }
   return secaoIgual ? { erro: 'repetido', motivo: 'secao', quando: secaoIgual } : { ok: true };
@@ -87,11 +89,13 @@ function enviar_(b) {
     const sh0 = planilhaEnvios_().getSheetByName('Envios');
     if (sh0.getRange(1, 12).getValue() !== 'sha') sh0.getRange(1, 12).setValue('sha');
     const shas = (b.shas || []).map(String).filter(x => /^[0-9a-f]{64}$/.test(x));
+    const qrkey = /^[0-9a-f]{64}$/.test(String(b.qrkey || '')) ? String(b.qrkey) : '';
+    if (sh0.getRange(1, 13).getValue() !== 'qrkey') sh0.getRange(1, 13).setValue('qrkey');
     if (sh0.getLastRow() > 1) {
-      const v = sh0.getRange(2, 1, sh0.getLastRow() - 1, 12).getValues();
+      const v = sh0.getRange(2, 1, sh0.getLastRow() - 1, 13).getValues();
       for (const r of v) {
         const mesmaSecao = String(r[2]) === uf && String(r[4]) === zona && String(r[5]) === secao && String(r[3]).toUpperCase().replace(/\s+/g, ' ') === mun.toUpperCase().replace(/\s+/g, ' ');
-        const mesmaFoto = shas.length && String(r[11]).split(',').some(x => shas.indexOf(x) >= 0);
+        const mesmaFoto = (shas.length && String(r[11]).split(',').some(x => shas.indexOf(x) >= 0)) || (qrkey && String(r[12]) === qrkey);
         if (mesmaFoto || (mesmaSecao && !b.forcar)) return { erro: 'repetido', quando: r[1] instanceof Date ? r[1].toISOString() : String(r[1]), motivo: mesmaFoto ? 'foto' : 'secao' };
       }
     }
@@ -109,7 +113,7 @@ function enviar_(b) {
       ids.push(f.getId());
     }
     const sh = planilhaEnvios_().getSheetByName('Envios');
-    sh.appendRow([id, new Date(), uf, mun, zona, secao, limpa(b.turno, 10) || '2º turno', limpa(b.nome, 80), limpa(b.whats, 30), ids.join(','), 'site', shas.join(',')]);
+    sh.appendRow([id, new Date(), uf, mun, zona, secao, limpa(b.turno, 10) || '2º turno', limpa(b.nome, 80), limpa(b.whats, 30), ids.join(','), 'site', shas.join(','), qrkey]);
     return { ok: true, id: id, arquivos: ids.length };
   } catch (e) {
     return { erro: 'falha', detalhe: String(e).slice(0, 120) };
