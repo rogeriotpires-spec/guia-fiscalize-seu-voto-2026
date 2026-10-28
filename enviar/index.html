@@ -9,7 +9,7 @@
 <meta property="og:description" content="Em um minuto o boletim da sua seção entra na conferência nacional e é comparado com o TSE.">
 <meta property="og:image" content="https://rogeriotpires-spec.github.io/guia-fiscalize-seu-voto-2026/assets/pagina-6.png">
 <link rel="stylesheet" href="../assets/timeline-header.css?v=5">
-<link rel="stylesheet" href="../assets/conferir.css?v=3">
+<link rel="stylesheet" href="../assets/conferir.css?v=5">
 </head>
 <body>
 <header class="timeline-sitebar" aria-label="Cabeçalho da Revista Timeline">
@@ -48,26 +48,41 @@
   </div>
 </nav>
 
-<main>
+<main class="enviar">
   <p class="eyebrow">2º TURNO · CONFERÊNCIA NACIONAL</p>
   <h1>ENVIE SEU <span>BOLETIM</span></h1>
-  <p class="intro">Fotografou o boletim de urna colado na porta da sua seção? Mande aqui. Em um minuto ele entra na conferência nacional e é comparado com o que o TSE publicou. Não precisa de conta nem de cadastro.</p>
+  <p class="intro">Fotografe o boletim colado na porta da sua seção. O site lê o QR Code e preenche tudo. Você só confirma.</p>
 
-  <section class="painel" id="painel-fotos" aria-labelledby="t-foto">
-    <h2 id="t-foto">1 · Fotos do boletim</h2>
-    <p class="muted">Fotografe o boletim inteiro, de perto, com boa luz e com os QR Codes do final sem cortar. Pode mandar até 5 fotos (ou um PDF). Se o QR Code for lido, os dados da seção são preenchidos sozinhos.</p>
-    <label class="upload" for="fotos">
+  <section class="painel passo-foto" id="painel-fotos">
+    <label class="upload grande" for="fotos">
       <input id="fotos" type="file" accept="image/*,application/pdf" multiple>
-      <span class="btn primary">📷 Escolher fotos</span>
+      <span class="btn primary gigante">📷 Fotografar ou escolher o boletim</span>
     </label>
-    <p id="cont" class="muted"></p>
+    <p class="muted centro">Até 5 fotos. Se o boletim tiver mais de um QR Code, fotografe todos.</p>
     <ul id="lista" class="fotos-lista"></ul>
     <div id="status" class="status" role="status" aria-live="polite"></div>
+    <label class="upload" for="fotos-qr" id="mais-qr" hidden>
+      <input id="fotos-qr" type="file" accept="image/*" capture="environment" multiple>
+      <span class="btn">➕ Fotografar só o QR Code, de perto</span>
+    </label>
   </section>
 
-  <form id="form" class="painel" novalidate aria-labelledby="t-dados">
-    <h2 id="t-dados">2 · Sua seção</h2>
-    <p class="muted">Os dados estão no cabeçalho do boletim.</p>
+  <section class="painel confirmacao" id="confirmacao" hidden aria-labelledby="t-conf">
+    <h2 id="t-conf">Encontrei no QR Code</h2>
+    <dl class="resumo">
+      <div><dt>Estado</dt><dd id="r-uf"></dd></div>
+      <div><dt>Município</dt><dd id="r-mun"></dd></div>
+      <div><dt>Zona</dt><dd id="r-zona"></dd></div>
+      <div><dt>Seção</dt><dd id="r-secao"></dd></div>
+    </dl>
+    <p class="muted" id="r-turno"></p>
+    <button class="btn primary gigante" id="confirmar" type="button">✓ Confirmar e enviar</button>
+    <button class="btn link" id="corrigir" type="button">Corrigir os dados</button>
+  </section>
+
+  <form id="form" class="painel" novalidate hidden aria-labelledby="t-dados">
+    <h2 id="t-dados">Dados da seção</h2>
+    <p class="muted">Estão no cabeçalho do boletim.</p>
     <div class="grade">
       <label>Estado
         <select id="uf" required>
@@ -83,20 +98,22 @@
       <label class="radio"><input type="radio" name="turno" value="2" checked> 2º turno (25/10)</label>
       <label class="radio"><input type="radio" name="turno" value="1"> 1º turno (04/10)</label>
     </fieldset>
-    <h2>3 · Contato <small>(opcional)</small></h2>
+    <input id="site" name="site" tabindex="-1" autocomplete="off" class="oculto" aria-hidden="true">
+    <button class="btn primary gigante" id="enviar" type="submit">Enviar boletim</button>
+  </form>
+
+  <details class="painel contato" id="contato">
+    <summary>Quer deixar um contato? (opcional)</summary>
     <p class="muted">Só usamos para avisar se a foto não puder ser lida. Nunca aparece no site.</p>
     <div class="grade duas">
       <label>Nome<input id="nome" maxlength="80" autocomplete="name"></label>
       <label>WhatsApp<input id="whats" inputmode="tel" maxlength="30" autocomplete="tel" placeholder="(DDD) número"></label>
     </div>
-    <input id="site" name="site" tabindex="-1" autocomplete="off" class="oculto" aria-hidden="true">
-    <button class="btn primary grande" id="enviar" type="submit">Enviar boletim</button>
-    <p class="muted pequeno">Ao enviar, você autoriza a publicação da foto do boletim na página Boletins enviados, sem o seu nome. Fotos com rosto ou documento de pessoas não são publicadas.</p>
-  </form>
+  </details>
 
   <section class="painel sucesso" id="sucesso" hidden>
     <div class="selo ok">✓ Boletim recebido</div>
-    <p>Obrigado por fiscalizar. Em até 30 minutos o robô lê o QR Code, compara com o TSE e publica o resultado da sua seção.</p>
+    <p>Obrigado por fiscalizar. Em até 30 minutos o robô compara o seu boletim com o TSE e publica o resultado da sua seção.</p>
     <div class="actions">
       <a class="btn primary" id="ver" href="../boletins/">Ver a minha seção na conferência</a>
       <button class="btn" id="compartilhar" type="button">Compartilhar com quem também fotografou</button>
@@ -105,15 +122,11 @@
   </section>
 
   <p id="reserva" class="muted pequeno" hidden>Formulário reserva (pede login no Google): <a href="https://forms.gle/6YfsatF9Z5hdLsFx9" target="_blank" rel="noopener noreferrer">abrir</a>.</p>
-
-  <details class="sobre">
-    <summary>O que acontece com a foto</summary>
-    <p>A foto vai para a base da conferência nacional da Revista Timeline. Um robô lê o QR Code do boletim, confere a soma interna e compara número por número com o que o TSE publicou para a sua seção. O resultado aparece na página Boletins enviados e entra na aba Resultado dos boletins.</p>
-    <p>Nome e WhatsApp são opcionais e ficam só com a equipe. As fotos publicadas são renomeadas e não trazem os dados do celular.</p>
-  </details>
+  <p class="muted pequeno">Ao enviar, você autoriza a publicação da foto do boletim na página Boletins enviados, sem o seu nome. Fotos com rosto ou documento de pessoas não são publicadas.</p>
 </main>
 <footer>REVISTA TIMELINE · FISCALIZE SEU VOTO 2026<br>Conferência nacional dos boletins de urna por Rogerio Pires<br><a href="https://www.instagram.com/rogerrio/" target="_blank" rel="noopener noreferrer">Instagram @rogerrio</a> · <a href="https://x.com/rogerrioX" target="_blank" rel="noopener noreferrer">X @rogerrioX</a></footer>
+<script src="../assets/vendor/zxing/zxing-reader.iife.js" defer></script>
 <script src="../assets/vendor/jsQR.min.js" defer></script>
-<script src="../assets/enviar.js?v=1" defer></script>
+<script src="../assets/enviar.js?v=2" defer></script>
 </body>
 </html>

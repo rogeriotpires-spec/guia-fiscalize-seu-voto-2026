@@ -60,3 +60,19 @@ footer{border-top:1px solid #333;padding:25px 18px;text-align:center;color:#aaa;
 h2 small{font-weight:400;font-size:14px;color:var(--mut)}
 .fiscalize-subnav__links a.destaque{border:1px solid #f4771c;color:#f4771c}
 .fiscalize-subnav__links a.destaque[aria-current="page"]{color:#16100b}
+main.enviar .intro{font-size:20px}
+.upload.grande{display:block;margin:8px 0 10px}
+.btn.gigante{display:block;width:100%;font-size:22px;padding:20px 16px;text-align:center;border-radius:14px}
+.centro{text-align:center}
+.fotos-lista li span.ok{color:#bff0cf;font-weight:700}
+.confirmacao{border-color:var(--ok)}
+.resumo{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin:12px 0 16px;padding:0}
+.resumo div{background:#0c0c0c;border:1px solid var(--line);border-radius:10px;padding:12px}
+.resumo dt{color:var(--mut);font-size:12px;text-transform:uppercase;letter-spacing:1px}
+.resumo dd{margin:4px 0 0;font-size:26px;font-weight:900}
+.btn.link{display:block;width:100%;background:none;border:0;color:var(--orange);text-decoration:underline;margin-top:8px;font-weight:600}
+.contato summary{cursor:pointer;font-weight:700}
+.contato[open] summary{margin-bottom:8px}
+#mais-qr{display:block;margin-top:12px}
+#mais-qr[hidden],.painel[hidden],form[hidden]{display:none}
+#mais-qr .btn{display:block;width:100%;text-align:center}
