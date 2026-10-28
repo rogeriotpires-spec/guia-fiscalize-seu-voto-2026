@@ -31,7 +31,13 @@ jobs:
           arqs = sorted(glob.glob('/tmp/a/**/detalhe_votacao_secao_2026_*.csv', recursive=True))
           dbg.write(f'arqs {len(arqs)}\n')
           if arqs:
-              dbg.write(open(arqs[0], encoding='latin-1').readline()[:800] + '\n')
+              import collections
+              with open(arqs[0], encoding='latin-1', newline='') as fh:
+                  rd = csv.DictReader(fh, delimiter=';'); cc = collections.Counter(); k = 0
+                  for row in rd:
+                      cc[(row.get('NR_TURNO'), row.get('CD_CARGO'))] += 1; k += 1
+                      if k == 1: dbg.write(str(row)[:1500] + '\n')
+                  dbg.write(str(cc) + '\n')
           dbg.close()
           for f in arqs:
               if f.endswith('_BR.csv') or f.endswith('_BRASIL.csv'): continue
