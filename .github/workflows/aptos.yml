@@ -1,0 +1,41 @@
+name: aptos-2t
+on:
+  push:
+    branches: [censo]
+    paths: ['disparo/aptos.txt']
+permissions:
+  contents: write
+jobs:
+  aptos:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with: {ref: censo, fetch-depth: 1}
+      - name: baixa e filtra
+        run: |
+          set -e
+          mkdir -p /tmp/a && cd /tmp/a
+          curl -sSL -o det.zip "https://cdn.tse.jus.br/estatistica/sead/odsele/detalhe_votacao_secao/detalhe_votacao_secao_2026.zip"
+          ls -la det.zip
+          unzip -o -q det.zip
+          ls -la | head -40
+          python3 - <<'PY'
+          import csv, glob, gzip
+          out = gzip.open('/tmp/a/aptos_2026.csv.gz', 'wt', encoding='utf-8', newline='')
+          w = csv.writer(out); n = 0
+          w.writerow(['turno','uf','mun','nm_mun','zona','secao','aptos','comp','abst','nom','br','nul','anul','local','receb','origem','inst','anulada','modelo'])
+          for f in sorted(glob.glob('/tmp/a/detalhe_votacao_secao_2026_*.csv')):
+              if f.endswith('_BR.csv') or f.endswith('_BRASIL.csv'): continue
+              with open(f, encoding='latin-1', newline='') as fh:
+                  r = csv.DictReader(fh, delimiter=';')
+                  for row in r:
+                      if row['CD_CARGO'] != '1': continue
+                      w.writerow([row['NR_TURNO'], row['SG_UF'], row['CD_MUNICIPIO'], row['NM_MUNICIPIO'], row['NR_ZONA'], row['NR_SECAO'], row['QT_APTOS'], row['QT_COMPARECIMENTO'], row['QT_ABSTENCOES'], row['QT_VOTOS_NOMINAIS'], row['QT_VOTOS_BRANCOS'], row['QT_VOTOS_NULOS'], row['QT_VOTOS_ANULADOS_APU_SEP'], row['NR_LOCAL_VOTACAO'], row['DT_RECEBIMENTO_BU_HOR_TSE'], row['DS_ORIGEM_VOTO'], row['ST_SECAO_INSTALADA'], row['ST_SECAO_ANULADA'], row['DS_MODELO_URNA']]); n += 1
+          out.close(); print('linhas', n)
+          PY
+          mkdir -p $GITHUB_WORKSPACE/aptos && cp /tmp/a/aptos_2026.csv.gz $GITHUB_WORKSPACE/aptos/
+      - name: publica
+        run: |
+          git config user.name robo-censo && git config user.email robo@users.noreply.github.com
+          git checkout -q -B aptos
+          git add aptos && git commit -qm "aptos e comparecimento por seção, 2026, dois turnos" && git push -q -f origin HEAD:censo-aptos
