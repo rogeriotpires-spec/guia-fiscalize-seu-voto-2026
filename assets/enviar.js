@@ -110,14 +110,14 @@
       if (arquivos.length >= MAX_ARQ) { status(`Máximo de ${MAX_ARQ} arquivos por envio.`, 'aviso'); break; }
       if (f.type === 'application/pdf' || /\.pdf$/i.test(f.name)) {
         if (f.size > MAX_PDF) { status('PDF acima de 9 MB. Envie uma foto no lugar.', 'aviso'); continue; }
-        arquivos.push({ nome: f.name, tipo: 'application/pdf', url: null, qr: [], blob: f }); continue;
+        arquivos.push({ nome: f.name, tipo: 'application/pdf', url: null, qr: [], blob: f, original: f }); continue;
       }
       try {
         const { img, url } = await carregar(f);
         const qr = await lerQR(img);
         const grande = desenhar(img, MAX_LADO);
         const blob = await new Promise(ok => grande.toBlob(ok, 'image/jpeg', 0.86));
-        arquivos.push({ nome: f.name, tipo: 'image/jpeg', url: desenhar(img, 400).toDataURL('image/jpeg', 0.6), qr, blob });
+        arquivos.push({ nome: f.name, tipo: 'image/jpeg', url: desenhar(img, 400).toDataURL('image/jpeg', 0.6), qr, blob, original: f });
         URL.revokeObjectURL(url);
       } catch (_) { status('Não consegui abrir uma das fotos. Tente outra.', 'aviso'); }
     }
@@ -151,7 +151,7 @@
 
   // ---------- envio ----------
   const sha256 = async (blob) => { try { const h = await crypto.subtle.digest('SHA-256', await blob.arrayBuffer()); return [...new Uint8Array(h)].map(x => x.toString(16).padStart(2, '0')).join(''); } catch (_) { return ''; } };
-  let painel = null;
+  let painel = null, shasPub = null;
   async function jaCadastrado(uf, mun, zona, secao) {
     try {
       if (!painel) painel = await fetch('../data/bus/painel.json', { cache: 'no-cache' }).then(r => r.json());
@@ -186,14 +186,30 @@
     if (!uf || !mun || !zona || !secao) { status('Preencha estado, município, zona e seção.', 'aviso'); $('form').hidden = false; return; }
     munCodigo = codigoMun();
     const rotulo = btn.textContent; btn.disabled = true; btn.textContent = 'Enviando…';
-    if (!forcar && munCodigo) {
-      const item = await jaCadastrado(uf, munCodigo, zona, secao);
-      if (item) { btn.disabled = false; btn.textContent = rotulo; repetido(item.data, item, 'secao'); return; }
+    // 1) mesma foto já conhecida pela conferência? (lista pública de assinaturas)
+    const shas = [];
+    for (const a of arquivos) { for (const bl of [a.original, a.blob]) { const h = bl ? await sha256(bl) : ''; if (h) shas.push(h); } }
+    if (!forcar) {
+      try {
+        if (!shasPub) shasPub = new Set((await fetch('../data/bus/shas.json', { cache: 'no-cache' }).then(r => r.json())).shas || []);
+        if (shas.some(h => shasPub.has(h))) { btn.disabled = false; btn.textContent = rotulo; repetido(null, null, 'foto'); return; }
+      } catch (_) { /* sem lista */ }
+      // 2) checagem no servidor, sem subir as fotos
+      try {
+        const r0 = await fetch(PONTE, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify({ acao: 'checar', uf, municipio: mun, zona, secao, shas }), redirect: 'follow' });
+        const d0 = await r0.json();
+        if (d0.erro === 'repetido') { btn.disabled = false; btn.textContent = rotulo; repetido(d0.quando, null, d0.motivo); return; }
+      } catch (_) { /* segue */ }
+      // 3) seção já publicada na conferência?
+      if (munCodigo) {
+        const item = await jaCadastrado(uf, munCodigo, zona, secao);
+        if (item) { btn.disabled = false; btn.textContent = rotulo; repetido(item.data, item, 'secao'); return; }
+      }
     }
     status('Enviando… não feche a página.');
     try {
-      const lista = [], shas = [];
-      for (const a of arquivos) { lista.push({ nome: a.nome.slice(0, 80), tipo: a.tipo, b64: await b64(a.blob) }); const h = await sha256(a.blob); if (h) shas.push(h); }
+      const lista = [];
+      for (const a of arquivos) lista.push({ nome: a.nome.slice(0, 80), tipo: a.tipo, b64: await b64(a.blob) });
       const corpo = {
         acao: 'enviar', uf, municipio: mun, zona, secao, shas, forcar,
         turno: (document.querySelector('input[name=turno]:checked') || {}).value === '1' ? '1º turno' : '2º turno',

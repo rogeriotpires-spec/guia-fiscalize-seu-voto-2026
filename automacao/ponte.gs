@@ -55,6 +55,23 @@ function planilhaEnvios_() {
   return ss;
 }
 
+/** Checagem prévia (sem arquivos): a seção ou a foto já foram enviadas pelo site? */
+function checar_(b) {
+  const limpa = (v, n) => String(v == null ? '' : v).replace(/[\r\n\t]/g, ' ').trim().slice(0, n);
+  const uf = limpa(b.uf, 2).toUpperCase(), mun = limpa(b.municipio, 80), zona = limpa(b.zona, 4), secao = limpa(b.secao, 4);
+  const shas = (b.shas || []).map(String).filter(x => /^[0-9a-f]{64}$/.test(x));
+  const sh = planilhaEnvios_().getSheetByName('Envios');
+  if (!sh || sh.getLastRow() < 2) return { ok: true };
+  const v = sh.getRange(2, 1, sh.getLastRow() - 1, 12).getValues();
+  let secaoIgual = null;
+  for (const r of v) {
+    const quando = r[1] instanceof Date ? r[1].toISOString() : String(r[1]);
+    if (shas.length && String(r[11]).split(',').some(x => shas.indexOf(x) >= 0)) return { erro: 'repetido', motivo: 'foto', quando: quando };
+    if (String(r[2]) === uf && String(r[4]) === zona && String(r[5]) === secao && String(r[3]).toUpperCase().replace(/\s+/g, ' ') === mun.toUpperCase().replace(/\s+/g, ' ')) secaoIgual = quando;
+  }
+  return secaoIgual ? { erro: 'repetido', motivo: 'secao', quando: secaoIgual } : { ok: true };
+}
+
 /** Envio público feito pelo formulário do site (sem senha). */
 function enviar_(b) {
   const limpa = (v, n) => String(v == null ? '' : v).replace(/[\r\n\t]/g, ' ').trim().slice(0, n);
@@ -183,6 +200,7 @@ function doPost(e) {
   let body;
   try { body = JSON.parse(e.postData.contents); } catch (x) { return json_({ erro: 'json' }); }
   if (body.acao === 'enviar') return json_(enviar_(body));
+  if (body.acao === 'checar') return json_(checar_(body));
   if (!autorizado_(body.t)) return json_({ erro: 'nao autorizado' });
   const ed = body.editaveis || {}, cx = body.caixas || {};
   PropertiesService.getScriptProperties().setProperty('EDITAVEIS', JSON.stringify(ed));

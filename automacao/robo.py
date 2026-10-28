@@ -680,6 +680,8 @@ def main():
     os.makedirs(os.path.dirname(SAIDA), exist_ok=True)
     json.dump({'atualizado': agora, 'placar': placar, 'rotulos': ROTULOS, 'itens': itens[::-1]},
               open(SAIDA, 'w'), ensure_ascii=False, separators=(',', ':'))
+    shas = sorted({a['sha'] for a in cache.values() if a.get('sha')})
+    json.dump({'atualizado': agora, 'shas': shas}, open(os.path.join(os.path.dirname(SAIDA), 'shas.json'), 'w'), separators=(',', ':'))
     json.dump(estado, open(ESTADO, 'w'), ensure_ascii=False, separators=(',', ':'))
     log('placar', json.dumps(placar, ensure_ascii=False))
 
