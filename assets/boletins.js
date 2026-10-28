@@ -25,7 +25,6 @@
     const cards = [
       ['Envios recebidos', fmt(p.envios), 'cada foto enviada conta uma vez'],
       ['Conferem com o TSE', fmt(conferem), `${fmt(p.secoes_conferem)} seções distintas · ${p.secoes_conferidas ? Math.round(100 * p.secoes_conferem / p.secoes_conferidas) : 0}% das seções conferidas`],
-      ['Divergem do TSE', fmt(s.diverge || 0), 'confirmados manualmente antes de publicar'],
       ['Em análise', fmt(analise), s.na_fila ? `${fmt(s.na_fila)} ainda na fila de leitura` : 'aguardando confirmação'],
       ['Ilegíveis', fmt(s.ilegivel || 0), 'pedimos nova foto'],
       ['Descartados', fmt(soma(DESCARTE)), 'não é boletim, 1º turno, repetidas, via digital'],
@@ -37,6 +36,9 @@
       if (d) c.append(el('span', 'detalhe', d));
       box.append(c);
     });
+    const desc = soma(DESCARTE), ileg = s.ilegivel || 0, div = s.diverge || 0;
+    const partes = [`${fmt(conferem)} conferem`].concat(div ? [`${fmt(div)} divergem`] : []).concat([`${fmt(analise)} em análise`, `${fmt(ileg)} ilegíveis`, `${fmt(desc)} descartados`]);
+    box.append(el('p', 'equacao', `${partes.join(' + ')} = ${fmt(conferem + div + analise + ileg + desc)} envios`));
     const at = new Date(dados.atualizado);
     $('atualizado').textContent = 'Atualizado em ' + at.toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short', timeZone: 'America/Sao_Paulo' }) + ' (horário de Brasília). Atualização automática a cada 30 minutos.';
   }

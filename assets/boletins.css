@@ -61,3 +61,5 @@ main.largo{max-width:1080px}
 .siga h2{margin:4px 0 6px;font-size:26px}
 .siga p{color:#ddd;max-width:640px}
 @media(max-width:560px){.apur-resumo{grid-template-columns:repeat(2,minmax(0,1fr))}}
+
+.placar .equacao{grid-column:1/-1;margin:0;color:var(--mut);font-size:13px;font-variant-numeric:tabular-nums;text-align:center}
