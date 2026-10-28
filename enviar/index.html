@@ -1,0 +1,119 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Envie seu boletim | Fiscalize Seu Voto 2026 | Revista Timeline</title>
+<meta name="description" content="Mande a foto do boletim de urna da sua seção para a conferência nacional dos boletins do 2º turno de 2026.">
+<meta property="og:title" content="Envie a foto do seu boletim de urna | Revista Timeline">
+<meta property="og:description" content="Em um minuto o boletim da sua seção entra na conferência nacional e é comparado com o TSE.">
+<meta property="og:image" content="https://rogeriotpires-spec.github.io/guia-fiscalize-seu-voto-2026/assets/pagina-6.png">
+<link rel="stylesheet" href="../assets/timeline-header.css?v=5">
+<link rel="stylesheet" href="../assets/conferir.css?v=3">
+</head>
+<body>
+<header class="timeline-sitebar" aria-label="Cabeçalho da Revista Timeline">
+  <div class="timeline-sitebar__masthead">
+    <a class="timeline-sitebar__brand" href="https://www.revistatimeline.com/" aria-label="Revista Timeline, página inicial">Timeline</a>
+    <div class="timeline-sitebar__tools">
+      <a class="timeline-sitebar__return" href="https://www.revistatimeline.com/" aria-label="Ir ao site da Revista Timeline">↗ Ir à revista</a>
+    </div>
+  </div>
+  <div class="timeline-sitebar__navigation">
+    <nav class="timeline-sitebar__links" aria-label="Menu principal da Revista Timeline">
+      <a href="https://www.revistatimeline.com/">Início</a>
+      <a href="https://www.revistatimeline.com/podcast">Podcasts</a>
+      <a href="https://lp.revistatimeline.com/">Assine</a>
+      <a href="https://loja.revistatimeline.com/">Loja Timeline</a>
+      <a href="https://observatorio.revistatimeline.com/">Observatório Eleitoral</a>
+      <a href="https://fiscalize.revistatimeline.com/" aria-current="page">Fiscalize Seu Voto</a>
+      <a href="https://www.youtube.com/@conversatimeline" target="_blank" rel="noopener noreferrer">YouTube</a>
+      <a href="https://www.instagram.com/_revistatimeline/" target="_blank" rel="noopener noreferrer">Instagram</a>
+      <a href="https://www.facebook.com/profile.php?id=61572807617119" target="_blank" rel="noopener noreferrer">Facebook</a>
+      <a href="https://www.revistatimeline.com/s/caderno-de-cultura">Caderno de Cultura</a>
+      <a href="https://www.revistatimeline.com/about">Sobre</a>
+    </nav>
+  </div>
+</header>
+<nav class="fiscalize-subnav" aria-label="Áreas do Fiscalize Seu Voto">
+  <div class="fiscalize-subnav__in">
+    <a class="fiscalize-subnav__brand" href="../"><span class="fiscalize-subnav__mark">F</span> FISCALIZE SEU VOTO</a>
+    <div class="fiscalize-subnav__links">
+      <a href="../">Guia do fiscal</a>
+      <a href="../conferir/">Confira seu BU</a>
+      <a href="../boletins/">Boletins enviados</a>
+      <a href="../resultado/">Resultado dos boletins</a>
+      <a href="./" aria-current="page" class="destaque">Enviar boletim</a>
+    </div>
+  </div>
+</nav>
+
+<main>
+  <p class="eyebrow">2º TURNO · CONFERÊNCIA NACIONAL</p>
+  <h1>ENVIE SEU <span>BOLETIM</span></h1>
+  <p class="intro">Fotografou o boletim de urna colado na porta da sua seção? Mande aqui. Em um minuto ele entra na conferência nacional e é comparado com o que o TSE publicou. Não precisa de conta nem de cadastro.</p>
+
+  <section class="painel" id="painel-fotos" aria-labelledby="t-foto">
+    <h2 id="t-foto">1 · Fotos do boletim</h2>
+    <p class="muted">Fotografe o boletim inteiro, de perto, com boa luz e com os QR Codes do final sem cortar. Pode mandar até 5 fotos (ou um PDF). Se o QR Code for lido, os dados da seção são preenchidos sozinhos.</p>
+    <label class="upload" for="fotos">
+      <input id="fotos" type="file" accept="image/*,application/pdf" multiple>
+      <span class="btn primary">📷 Escolher fotos</span>
+    </label>
+    <p id="cont" class="muted"></p>
+    <ul id="lista" class="fotos-lista"></ul>
+    <div id="status" class="status" role="status" aria-live="polite"></div>
+  </section>
+
+  <form id="form" class="painel" novalidate aria-labelledby="t-dados">
+    <h2 id="t-dados">2 · Sua seção</h2>
+    <p class="muted">Os dados estão no cabeçalho do boletim.</p>
+    <div class="grade">
+      <label>Estado
+        <select id="uf" required>
+          <option value="">Escolha</option>
+          <option>AC</option><option>AL</option><option>AM</option><option>AP</option><option>BA</option><option>CE</option><option>DF</option><option>ES</option><option>GO</option><option>MA</option><option>MG</option><option>MS</option><option>MT</option><option>PA</option><option>PB</option><option>PE</option><option>PI</option><option>PR</option><option>RJ</option><option>RN</option><option>RO</option><option>RR</option><option>RS</option><option>SC</option><option>SE</option><option>SP</option><option>TO</option>
+        </select>
+      </label>
+      <label>Município<input id="municipio" list="lista-mun" autocomplete="off" required><datalist id="lista-mun"></datalist></label>
+      <label>Zona<input id="zona" inputmode="numeric" pattern="[0-9]*" maxlength="4" required></label>
+      <label>Seção<input id="secao" inputmode="numeric" pattern="[0-9]*" maxlength="4" required></label>
+    </div>
+    <fieldset class="turno"><legend>Turno</legend>
+      <label class="radio"><input type="radio" name="turno" value="2" checked> 2º turno (25/10)</label>
+      <label class="radio"><input type="radio" name="turno" value="1"> 1º turno (04/10)</label>
+    </fieldset>
+    <h2>3 · Contato <small>(opcional)</small></h2>
+    <p class="muted">Só usamos para avisar se a foto não puder ser lida. Nunca aparece no site.</p>
+    <div class="grade duas">
+      <label>Nome<input id="nome" maxlength="80" autocomplete="name"></label>
+      <label>WhatsApp<input id="whats" inputmode="tel" maxlength="30" autocomplete="tel" placeholder="(DDD) número"></label>
+    </div>
+    <input id="site" name="site" tabindex="-1" autocomplete="off" class="oculto" aria-hidden="true">
+    <button class="btn primary grande" id="enviar" type="submit">Enviar boletim</button>
+    <p class="muted pequeno">Ao enviar, você autoriza a publicação da foto do boletim na página Boletins enviados, sem o seu nome. Fotos com rosto ou documento de pessoas não são publicadas.</p>
+  </form>
+
+  <section class="painel sucesso" id="sucesso" hidden>
+    <div class="selo ok">✓ Boletim recebido</div>
+    <p>Obrigado por fiscalizar. Em até 30 minutos o robô lê o QR Code, compara com o TSE e publica o resultado da sua seção.</p>
+    <div class="actions">
+      <a class="btn primary" id="ver" href="../boletins/">Ver a minha seção na conferência</a>
+      <button class="btn" id="compartilhar" type="button">Compartilhar com quem também fotografou</button>
+      <a class="btn" href="./">Enviar outro boletim</a>
+    </div>
+  </section>
+
+  <p id="reserva" class="muted pequeno" hidden>Formulário reserva (pede login no Google): <a href="https://forms.gle/6YfsatF9Z5hdLsFx9" target="_blank" rel="noopener noreferrer">abrir</a>.</p>
+
+  <details class="sobre">
+    <summary>O que acontece com a foto</summary>
+    <p>A foto vai para a base da conferência nacional da Revista Timeline. Um robô lê o QR Code do boletim, confere a soma interna e compara número por número com o que o TSE publicou para a sua seção. O resultado aparece na página Boletins enviados e entra na aba Resultado dos boletins.</p>
+    <p>Nome e WhatsApp são opcionais e ficam só com a equipe. As fotos publicadas são renomeadas e não trazem os dados do celular.</p>
+  </details>
+</main>
+<footer>REVISTA TIMELINE · FISCALIZE SEU VOTO 2026<br>Conferência nacional dos boletins de urna por Rogerio Pires<br><a href="https://www.instagram.com/rogerrio/" target="_blank" rel="noopener noreferrer">Instagram @rogerrio</a> · <a href="https://x.com/rogerrioX" target="_blank" rel="noopener noreferrer">X @rogerrioX</a></footer>
+<script src="../assets/vendor/jsQR.min.js" defer></script>
+<script src="../assets/enviar.js?v=1" defer></script>
+</body>
+</html>

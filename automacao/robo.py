@@ -64,7 +64,7 @@ CHAVE_DEPURACAO = 'kcwi+vH8v9LYAXhWjtdS7ldVopqJfTO4Iknc4lU5QjE='
 _CFG = os.path.join(RAIZ, 'automacao', 'config.json')
 URL = os.environ.get('PONTE_URL') or (json.load(open(_CFG)).get('ponte_url', '') if os.path.exists(_CFG) else '')
 TOKEN = os.environ.get('PONTE_TOKEN', '')
-FORM_LINK = 'https://forms.gle/6YfsatF9Z5hdLsFx9'
+FORM_LINK = 'https://fiscalize.revistatimeline.com/enviar/'
 SITE = 'https://fiscalize.revistatimeline.com/boletins/'
 
 ROTULOS = {

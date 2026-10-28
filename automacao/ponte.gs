@@ -8,6 +8,9 @@ const FORM_ID = '1I5Dtwl42Ix2hc24trXyLfz7p1negFX_7Ftqs6-CYAso';
 const PASTA_UPLOADS = '17QfifUvxcFO45Y08e31PVLSY3StIWu5lchADy5cSFI7Jk3mJduviHsgIE_hobU7gRo9m5SsF';
 const PASTA_RELATORIOS = '14bbCRZvg_iQyCGpEbU904F6LuZWBq6SU';
 const NOME_PLANILHA = 'Fiscalize – Painel interno (restrito)';
+const PASTA_BUS = '1_lutnr7D9vLzhbrKnnz-eNmExXJSJRcf';   // 02 BUs enviados pelo público
+const NOME_ENVIOS = 'Fiscalize – Envios pelo site';
+const MAX_ARQ = 5, MAX_BYTES = 9 * 1024 * 1024;
 
 /** Rode UMA vez pelo editor: cria a senha e a planilha e mostra a senha no registro. */
 function configurar() {
@@ -16,6 +19,7 @@ function configurar() {
   planilha_();
   DriveApp.getFolderById(PASTA_UPLOADS).getName(); // pede a autorização do Drive
   FormApp.openById(FORM_ID).getTitle();            // pede a autorização do Forms
+  pastaEnvios_(); planilhaEnvios_();
   Logger.log('SENHA DA PONTE (copie para o GitHub): ' + p.getProperty('TOKEN'));
 }
 
@@ -27,6 +31,82 @@ function planilha_() {
   DriveApp.getFileById(ss.getId()).moveTo(DriveApp.getFolderById(PASTA_RELATORIOS));
   p.setProperty('PLANILHA', ss.getId());
   return ss;
+}
+
+/** Pasta e planilha do formulário próprio do site. */
+function pastaEnvios_() {
+  const p = PropertiesService.getScriptProperties();
+  const id = p.getProperty('PASTA_ENVIOS');
+  if (id) { try { return DriveApp.getFolderById(id); } catch (e) { /* recria */ } }
+  const f = DriveApp.getFolderById(PASTA_BUS).createFolder('Envios pelo site');
+  p.setProperty('PASTA_ENVIOS', f.getId());
+  return f;
+}
+function planilhaEnvios_() {
+  const p = PropertiesService.getScriptProperties();
+  const id = p.getProperty('PLANILHA_ENVIOS');
+  if (id) { try { return SpreadsheetApp.openById(id); } catch (e) { /* recria */ } }
+  const ss = SpreadsheetApp.create(NOME_ENVIOS);
+  DriveApp.getFileById(ss.getId()).moveTo(DriveApp.getFolderById(PASTA_BUS));
+  const sh = ss.getSheets()[0]; sh.setName('Envios');
+  sh.appendRow(['id', 'recebido', 'uf', 'municipio', 'zona', 'secao', 'turno', 'nome', 'whatsapp', 'arquivos', 'origem']);
+  sh.setFrozenRows(1);
+  p.setProperty('PLANILHA_ENVIOS', ss.getId());
+  return ss;
+}
+
+/** Envio público feito pelo formulário do site (sem senha). */
+function enviar_(b) {
+  const limpa = (v, n) => String(v == null ? '' : v).replace(/[\r\n\t]/g, ' ').trim().slice(0, n);
+  const uf = limpa(b.uf, 2).toUpperCase(), mun = limpa(b.municipio, 80), zona = limpa(b.zona, 4), secao = limpa(b.secao, 4);
+  if (!/^[A-Z]{2}$/.test(uf) || !mun || !/^\d{1,4}$/.test(zona) || !/^\d{1,4}$/.test(secao)) return { erro: 'dados' };
+  if (b.site) return { ok: true, id: 'x' }; // campo-armadilha preenchido: robô de spam
+  const arqs = (b.arquivos || []).slice(0, MAX_ARQ);
+  if (!arqs.length) return { erro: 'sem_arquivo' };
+  const lock = LockService.getScriptLock();
+  try { lock.waitLock(20000); } catch (e) { return { erro: 'ocupado' }; }
+  try {
+    const pasta = pastaEnvios_();
+    const id = Utilities.getUuid().replace(/-/g, '').slice(0, 20);
+    const ids = [];
+    for (let i = 0; i < arqs.length; i++) {
+      const a = arqs[i] || {};
+      const tipo = /^(image\/(jpeg|png|webp|heic|heif)|application\/pdf)$/.test(a.tipo || '') ? a.tipo : 'image/jpeg';
+      const bytes = Utilities.base64Decode(String(a.b64 || '').replace(/^data:[^,]*,/, ''));
+      if (!bytes.length || bytes.length > MAX_BYTES) return { erro: 'tamanho' };
+      const ext = tipo === 'application/pdf' ? 'pdf' : (tipo.split('/')[1] || 'jpg').replace('jpeg', 'jpg');
+      const nome = uf + '-' + mun.replace(/[^\w]+/g, '_').slice(0, 30) + '-z' + zona + '-s' + secao + '-' + id + '-' + (i + 1) + '.' + ext;
+      const f = pasta.createFile(Utilities.newBlob(bytes, tipo, nome));
+      ids.push(f.getId());
+    }
+    const sh = planilhaEnvios_().getSheetByName('Envios');
+    sh.appendRow([id, new Date(), uf, mun, zona, secao, limpa(b.turno, 10) || '2º turno', limpa(b.nome, 80), limpa(b.whats, 30), ids.join(','), 'site']);
+    return { ok: true, id: id, arquivos: ids.length };
+  } catch (e) {
+    return { erro: 'falha', detalhe: String(e).slice(0, 120) };
+  } finally {
+    lock.releaseLock();
+  }
+}
+
+function enviosSite_() {
+  const sh = planilhaEnvios_().getSheetByName('Envios');
+  if (!sh || sh.getLastRow() < 2) return [];
+  const v = sh.getDataRange().getValues(); const h = v[0];
+  const c = n => h.indexOf(n);
+  return v.slice(1).filter(r => r[c('id')]).map(r => ({
+    id: 'site-' + r[c('id')],
+    ts: (r[c('recebido')] instanceof Date ? r[c('recebido')] : new Date(r[c('recebido')])).toISOString(),
+    itens: [
+      { t: 'UF', tipo: 'LIST', v: String(r[c('uf')]) },
+      { t: 'Município', tipo: 'TEXT', v: String(r[c('municipio')]) },
+      { t: 'Zona', tipo: 'TEXT', v: String(r[c('zona')]) },
+      { t: 'Seção', tipo: 'TEXT', v: String(r[c('secao')]) },
+      { t: 'Turno', tipo: 'LIST', v: String(r[c('turno')]) },
+      { t: 'Foto do boletim', tipo: 'FILE_UPLOAD', v: String(r[c('arquivos')]).split(',').filter(Boolean) },
+      { t: 'Nome e WhatsApp', tipo: 'TEXT', v: (String(r[c('nome')]) + ' ' + String(r[c('whatsapp')])).trim() },
+    ]
+  }));
 }
 
 function json_(o) {
@@ -48,18 +128,20 @@ function doGet(e) {
 
 function respostas_() {
   const form = FormApp.openById(FORM_ID);
-  return form.getResponses().map(r => ({
+  const doForm = form.getResponses().map(r => ({
     id: r.getId(),
     ts: r.getTimestamp().toISOString(),
     itens: r.getItemResponses().map(ir => ({ t: ir.getItem().getTitle(), tipo: String(ir.getItem().getType()), v: ir.getResponse() }))
   }));
+  return doForm.concat(enviosSite_());
 }
 
 function arquivo_(id) {
   const f = DriveApp.getFileById(id);
-  // só entrega arquivos enviados pelo formulário
+  // só entrega arquivos enviados pelo formulário ou pelo site
+  const permitidas = [PASTA_UPLOADS, pastaEnvios_().getId()];
   let ok = false; const it = f.getParents();
-  while (it.hasNext()) if (it.next().getId() === PASTA_UPLOADS) ok = true;
+  while (it.hasNext()) if (permitidas.indexOf(it.next().getId()) >= 0) ok = true;
   if (!ok) return { erro: 'fora da pasta do formulario' };
   const b = f.getBlob();
   return { mime: b.getContentType(), b64: Utilities.base64Encode(b.getBytes()) };
@@ -86,7 +168,9 @@ function marcacoes_() {
 /** Recebe {t, abas:{nome:[[cabeçalho],[linha]...]}, editaveis:{aba:[colunas]}, caixas:{aba:[colunas]}}
  *  e reescreve as abas, preservando o que o Rogerio preencheu nas colunas editáveis. */
 function doPost(e) {
-  const body = JSON.parse(e.postData.contents);
+  let body;
+  try { body = JSON.parse(e.postData.contents); } catch (x) { return json_({ erro: 'json' }); }
+  if (body.acao === 'enviar') return json_(enviar_(body));
   if (!autorizado_(body.t)) return json_({ erro: 'nao autorizado' });
   const ed = body.editaveis || {}, cx = body.caixas || {};
   PropertiesService.getScriptProperties().setProperty('EDITAVEIS', JSON.stringify(ed));

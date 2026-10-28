@@ -42,3 +42,21 @@ input,select{width:100%;padding:11px;border:1px solid #555;border-radius:7px;bac
 .sobre p{font-size:14px;color:var(--mut)}
 footer{border-top:1px solid #333;padding:25px 18px;text-align:center;color:#aaa;font-size:13px}
 @media(max-width:720px){.passos{grid-template-columns:1fr}.grade{grid-template-columns:repeat(2,minmax(0,1fr))}}
+
+.fotos-lista{list-style:none;padding:0;margin:12px 0 0;display:flex;flex-wrap:wrap;gap:10px}
+.fotos-lista li{display:flex;flex-direction:column;align-items:center;gap:4px;width:120px;font-size:12px;color:var(--mut)}
+.fotos-lista img,.fotos-lista .pdf{width:120px;height:160px;object-fit:cover;border-radius:8px;border:1px solid #444;background:#222;display:grid;place-items:center;font-weight:800;color:#ccc}
+.remover{background:none;border:0;color:#f2b56b;font:inherit;font-size:12px;cursor:pointer;text-decoration:underline}
+.status.ok{color:#bff0cf}.status.aviso{color:#f2b56b}
+.grade.duas{grid-template-columns:repeat(2,minmax(0,1fr))}
+.turno{border:0;padding:0;margin:14px 0 4px;display:flex;gap:18px;flex-wrap:wrap}
+.turno legend{font-weight:650;font-size:14px;margin-bottom:6px}
+.radio{flex-direction:row;align-items:center;gap:8px;font-weight:500}
+.radio input{width:auto}
+.oculto{position:absolute;left:-9999px;width:1px;height:1px;opacity:0}
+.btn.grande{width:100%;font-size:20px;padding:16px;margin-top:16px}
+.pequeno{font-size:12px}
+.sucesso p{font-size:17px}
+h2 small{font-weight:400;font-size:14px;color:var(--mut)}
+.fiscalize-subnav__links a.destaque{border:1px solid #f4771c;color:#f4771c}
+.fiscalize-subnav__links a.destaque[aria-current="page"]{color:#16100b}
