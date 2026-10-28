@@ -2,6 +2,8 @@ name: teste-tse
 on:
   push:
     branches: [censo-teste]
+permissions:
+  contents: write
 jobs:
   t:
     runs-on: ubuntu-latest
