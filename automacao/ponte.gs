@@ -66,6 +66,18 @@ function enviar_(b) {
   const lock = LockService.getScriptLock();
   try { lock.waitLock(20000); } catch (e) { return { erro: 'ocupado' }; }
   try {
+    // já recebido? (mesma foto, ou mesma seção pelo site)
+    const sh0 = planilhaEnvios_().getSheetByName('Envios');
+    if (sh0.getRange(1, 12).getValue() !== 'sha') sh0.getRange(1, 12).setValue('sha');
+    const shas = (b.shas || []).map(String).filter(x => /^[0-9a-f]{64}$/.test(x));
+    if (sh0.getLastRow() > 1) {
+      const v = sh0.getRange(2, 1, sh0.getLastRow() - 1, 12).getValues();
+      for (const r of v) {
+        const mesmaSecao = String(r[2]) === uf && String(r[4]) === zona && String(r[5]) === secao && String(r[3]).toUpperCase().replace(/\s+/g, ' ') === mun.toUpperCase().replace(/\s+/g, ' ');
+        const mesmaFoto = shas.length && String(r[11]).split(',').some(x => shas.indexOf(x) >= 0);
+        if (mesmaFoto || (mesmaSecao && !b.forcar)) return { erro: 'repetido', quando: r[1] instanceof Date ? r[1].toISOString() : String(r[1]), motivo: mesmaFoto ? 'foto' : 'secao' };
+      }
+    }
     const pasta = pastaEnvios_();
     const id = Utilities.getUuid().replace(/-/g, '').slice(0, 20);
     const ids = [];
@@ -80,7 +92,7 @@ function enviar_(b) {
       ids.push(f.getId());
     }
     const sh = planilhaEnvios_().getSheetByName('Envios');
-    sh.appendRow([id, new Date(), uf, mun, zona, secao, limpa(b.turno, 10) || '2º turno', limpa(b.nome, 80), limpa(b.whats, 30), ids.join(','), 'site']);
+    sh.appendRow([id, new Date(), uf, mun, zona, secao, limpa(b.turno, 10) || '2º turno', limpa(b.nome, 80), limpa(b.whats, 30), ids.join(','), 'site', shas.join(',')]);
     return { ok: true, id: id, arquivos: ids.length };
   } catch (e) {
     return { erro: 'falha', detalhe: String(e).slice(0, 120) };

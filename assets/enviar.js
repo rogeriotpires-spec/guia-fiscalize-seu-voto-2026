@@ -150,6 +150,30 @@
   $('form').addEventListener('submit', (e) => { e.preventDefault(); enviar($('enviar')); });
 
   // ---------- envio ----------
+  const sha256 = async (blob) => { try { const h = await crypto.subtle.digest('SHA-256', await blob.arrayBuffer()); return [...new Uint8Array(h)].map(x => x.toString(16).padStart(2, '0')).join(''); } catch (_) { return ''; } };
+  let painel = null;
+  async function jaCadastrado(uf, mun, zona, secao) {
+    try {
+      if (!painel) painel = await fetch('../data/bus/painel.json', { cache: 'no-cache' }).then(r => r.json());
+      return painel.itens.find(i => i.uf === uf && String(i.mun) === String(mun) && i.zona === +zona && i.secao === +secao &&
+        ['confere', 'confere_numeros', 'em_analise', 'na_fila', 'diverge'].includes(i.status)) || null;
+    } catch (_) { return null; }
+  }
+  function repetido(quando, item) {
+    ['form', 'confirmacao'].forEach(id => { $(id).hidden = true; });
+    const s = $('sucesso'); s.hidden = false;
+    s.querySelector('.selo').textContent = '✓ Boletim já cadastrado';
+    s.querySelector('p').textContent = item && (item.status === 'confere' || item.status === 'confere_numeros')
+      ? 'O boletim desta seção já foi enviado e confere com o TSE. Obrigado por fiscalizar! Se o seu boletim tiver números diferentes, toque em Enviar mesmo assim.'
+      : 'O boletim desta seção já está na conferência' + (quando ? ' (recebido em ' + new Date(quando).toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' }) + ')' : '') + '. Obrigado por fiscalizar! Se o seu tiver números diferentes, toque em Enviar mesmo assim.';
+    $('forcar').hidden = false;
+    const q = new URLSearchParams({ uf: $('uf').value }); if (munCodigo) q.set('mun', munCodigo);
+    q.set('zona', $('zona').value.trim()); q.set('secao', $('secao').value.trim());
+    $('ver').href = '../boletins/?' + q.toString();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+  let forcar = false;
+  $('forcar').addEventListener('click', () => { forcar = true; $('sucesso').hidden = true; $('confirmacao').hidden = false; enviar($('confirmar')); });
   const b64 = (blob) => new Promise((ok, erro) => { const r = new FileReader(); r.onload = () => ok(String(r.result).split(',')[1]); r.onerror = () => erro(new Error('leitura')); r.readAsDataURL(blob); });
   async function enviar(btn) {
     const uf = $('uf').value, mun = $('municipio').value.trim(), zona = $('zona').value.trim(), secao = $('secao').value.trim();
@@ -157,17 +181,22 @@
     if (!uf || !mun || !zona || !secao) { status('Preencha estado, município, zona e seção.', 'aviso'); $('form').hidden = false; return; }
     munCodigo = codigoMun();
     const rotulo = btn.textContent; btn.disabled = true; btn.textContent = 'Enviando…';
+    if (!forcar && munCodigo) {
+      const item = await jaCadastrado(uf, munCodigo, zona, secao);
+      if (item) { btn.disabled = false; btn.textContent = rotulo; repetido(item.data, item); return; }
+    }
     status('Enviando… não feche a página.');
     try {
-      const lista = [];
-      for (const a of arquivos) lista.push({ nome: a.nome.slice(0, 80), tipo: a.tipo, b64: await b64(a.blob) });
+      const lista = [], shas = [];
+      for (const a of arquivos) { lista.push({ nome: a.nome.slice(0, 80), tipo: a.tipo, b64: await b64(a.blob) }); const h = await sha256(a.blob); if (h) shas.push(h); }
       const corpo = {
-        acao: 'enviar', uf, municipio: mun, zona, secao,
+        acao: 'enviar', uf, municipio: mun, zona, secao, shas, forcar,
         turno: (document.querySelector('input[name=turno]:checked') || {}).value === '1' ? '1º turno' : '2º turno',
         nome: $('nome').value.trim(), whats: $('whats').value.trim(), site: $('site').value, arquivos: lista,
       };
       const r = await fetch(PONTE, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(corpo), redirect: 'follow' });
       const d = await r.json();
+      if (d.erro === 'repetido') { btn.disabled = false; btn.textContent = rotulo; repetido(d.quando, null); if (d.motivo === 'foto') $('forcar').hidden = true; return; }
       if (!d.ok) throw new Error(d.erro || 'falha');
       sucesso();
     } catch (err) {
@@ -181,7 +210,9 @@
   }
   function sucesso() {
     ['form', 'painel-fotos', 'confirmacao', 'contato'].forEach(id => { $(id).hidden = true; });
-    const s = $('sucesso'); s.hidden = false;
+    const s = $('sucesso'); s.hidden = false; $('forcar').hidden = true;
+    s.querySelector('.selo').textContent = '✓ Boletim recebido';
+    s.querySelector('p').textContent = 'Obrigado por fiscalizar. Em até 30 minutos o robô compara o seu boletim com o TSE e publica o resultado da sua seção.';
     const q = new URLSearchParams({ uf: $('uf').value }); if (munCodigo) q.set('mun', munCodigo);
     q.set('zona', $('zona').value.trim()); q.set('secao', $('secao').value.trim());
     $('ver').href = '../boletins/?' + q.toString();

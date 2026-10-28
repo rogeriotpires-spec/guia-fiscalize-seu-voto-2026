@@ -76,3 +76,4 @@ main.enviar .intro{font-size:20px}
 #mais-qr{display:block;margin-top:12px}
 #mais-qr[hidden],.painel[hidden],form[hidden]{display:none}
 #mais-qr .btn{display:block;width:100%;text-align:center}
+.btn.link[hidden]{display:none}
