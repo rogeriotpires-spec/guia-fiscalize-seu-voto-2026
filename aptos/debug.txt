@@ -1,0 +1,37 @@
+/tmp/a/detalhe_votacao_secao_2026_PA.csv 29059600
+/tmp/a/detalhe_votacao_secao_2026_MG.csv 76572304
+/tmp/a/detalhe_votacao_secao_2026_PI.csv 14659964
+/tmp/a/detalhe_votacao_secao_2026_RN.csv 15232294
+/tmp/a/detalhe_votacao_secao_2026_MA.csv 25886693
+/tmp/a/debug.txt 0
+/tmp/a/detalhe_votacao_secao_2026_BA.csv 52881167
+/tmp/a/leiame.pdf 123650
+/tmp/a/detalhe_votacao_secao_2026_SE.csv 8642037
+/tmp/a/det.zip 234357769
+/tmp/a/detalhe_votacao_secao_2026_AL.csv 10385170
+/tmp/a/detalhe_votacao_secao_2026_PB.csv 15765923
+/tmp/a/detalhe_votacao_secao_2026_AM.csv 14439302
+/tmp/a/detalhe_votacao_secao_2026_ZZ.csv 606
+/tmp/a/detalhe_votacao_secao_2026_PR.csv 39790087
+/tmp/a/detalhe_votacao_secao_2026_AC.csv 4006541
+/tmp/a/detalhe_votacao_secao_2026_RO.csv 6868211
+/tmp/a/detalhe_votacao_secao_2026_RS.csv 40619554
+/tmp/a/detalhe_votacao_secao_2026_RJ.csv 55799205
+/tmp/a/detalhe_votacao_secao_2026_ES.csv 17623155
+/tmp/a/detalhe_votacao_secao_2026_RR.csv 2237063
+/tmp/a/detalhe_votacao_secao_2026_TO.csv 8031137
+/tmp/a/detalhe_votacao_secao_2026_BR.csv 351831261
+/tmp/a/detalhe_votacao_secao_2026_SP.csv 148259861
+/tmp/a/detalhe_votacao_secao_2026_MT.csv 12267191
+/tmp/a/detalhe_votacao_secao_2026_AP.csv 2754850
+/tmp/a/detalhe_votacao_secao_2026_BRASIL.csv 1090620422
+/tmp/a/detalhe_votacao_secao_2026_SC.csv 25920597
+/tmp/a/aptos_2026.csv.gz 0
+/tmp/a/detalhe_votacao_secao_2026_MS.csv 10404618
+/tmp/a/detalhe_votacao_secao_2026_DF.csv 12645533
+/tmp/a/detalhe_votacao_secao_2026_GO.csv 23384412
+/tmp/a/detalhe_votacao_secao_2026_CE.csv 33410571
+/tmp/a/detalhe_votacao_secao_2026_PE.csv 31258483
+arqs 30
+{'DT_GERACAO': '26/10/2026', 'HH_GERACAO': '09:49:06', 'ANO_ELEICAO': '2026', 'CD_TIPO_ELEICAO': '2', 'NM_TIPO_ELEICAO': 'Eleição Ordinária', 'NR_TURNO': '2', 'CD_ELEICAO': '6260', 'DS_ELEICAO': 'Eleições Gerais Estaduais 2026', 'DT_ELEICAO': '25/10/2026', 'TP_ABRANGENCIA': 'E', 'SG_UF': 'AC', 'SG_UE': 'AC', 'NM_UE': 'ACRE', 'CD_MUNICIPIO': '1392', 'NM_MUNICIPIO': 'RIO BRANCO', 'NR_ZONA': '9', 'NR_SECAO': '342', 'CD_CARGO': '3', 'DS_CARGO': 'Governador', 'QT_APTOS': '337', 'QT_COMPARECIMENTO': '278', 'QT_ABSTENCOES': '59', 'QT_VOTOS_NOMINAIS': '257', 'QT_VOTOS_BRANCOS': '4', 'QT_VOTOS_NULOS': '17', 'QT_VOTOS_LEGENDA': '0', 'QT_VOTOS_ANULADOS_APU_SEP': '0', 'NR_LOCAL_VOTACAO': '2135', 'NM_LOCAL_VOTACAO': 'ESCOLA PROFESSORA IONE PORTELA DA COSTA CASAS', 'DS_LOCAL_VOTACAO_ENDERECO': 'RUA BELEM S/N', 'DT_RECEBIMENTO_BU_HOR_TSE': '25/10/2026 19:42:13', 'DT_PRIM_TOT_PARCIAL_HOR_TSE': '25/10/2026 19:42:26', 'DS_ORIGEM_VOTO': 'Urna Eletrônica', 'ST_SECAO_INSTALADA': 'Sim', 'ST_SECAO_ANULADA': 'Não', 'CD_MODELO_URNA': '2022', 'DS_MODELO_URNA': 'UE 2022'}
+Counter({('2', '3'): 2270, ('1', '5'): 2270, ('1', '7'): 2270, ('1', '6'): 2270, ('1', '3'): 2270})
