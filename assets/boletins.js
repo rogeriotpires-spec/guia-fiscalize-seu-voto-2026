@@ -20,17 +20,19 @@
   function placar() {
     const p = dados.placar, s = p.por_status || {};
     const soma = (ks) => ks.reduce((a, k) => a + (s[k] || 0), 0);
+    const conferem = soma(['confere', 'confere_numeros']);
+    const analise = soma(['em_analise', 'nao_encontrada', 'na_fila']);
     const cards = [
-      ['Envios recebidos', fmt(p.envios), ''],
-      ['Seções conferidas', fmt(p.secoes_conferidas), 'cada seção conta uma vez'],
-      ['Conferem com o TSE', fmt(p.secoes_conferem), p.secoes_conferidas ? `${Math.round(100 * p.secoes_conferem / p.secoes_conferidas)}% das seções conferidas` : ''],
-      ['Em análise', fmt(soma(['em_analise', 'nao_encontrada', 'na_fila'])), s.na_fila ? `${fmt(s.na_fila)} ainda na fila de leitura` : 'aguardando confirmação'],
+      ['Envios recebidos', fmt(p.envios), 'cada foto enviada conta uma vez'],
+      ['Conferem com o TSE', fmt(conferem), `${fmt(p.secoes_conferem)} seções distintas · ${p.secoes_conferidas ? Math.round(100 * p.secoes_conferem / p.secoes_conferidas) : 0}% das seções conferidas`],
+      ['Divergem do TSE', fmt(s.diverge || 0), 'confirmados manualmente antes de publicar'],
+      ['Em análise', fmt(analise), s.na_fila ? `${fmt(s.na_fila)} ainda na fila de leitura` : 'aguardando confirmação'],
       ['Ilegíveis', fmt(s.ilegivel || 0), 'pedimos nova foto'],
       ['Descartados', fmt(soma(DESCARTE)), 'não é boletim, 1º turno, repetidas, via digital'],
     ];
     const box = $('placar'); box.textContent = '';
     cards.forEach(([t, v, d], i) => {
-      const c = el('div', 'card' + (i === 2 ? ' destaque' : ''));
+      const c = el('div', 'card' + (i === 1 ? ' destaque' : ''));
       c.append(el('span', 'valor', v), el('span', 'titulo', t));
       if (d) c.append(el('span', 'detalhe', d));
       box.append(c);
