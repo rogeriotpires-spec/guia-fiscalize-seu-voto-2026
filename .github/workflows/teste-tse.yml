@@ -1,0 +1,21 @@
+name: teste-tse
+on:
+  push:
+    branches: [censo-teste]
+jobs:
+  t:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: testa acesso ao TSE
+        run: |
+          mkdir -p saida
+          for i in 1 2 3; do
+            curl -sS -m 30 -o saida/aux.json -w "%{http_code} %{time_total}\n" "https://resultados.tse.jus.br/oficial/ele2026/arquivo-urna/3221/dados/ac/01074/0004/0001/p003221-ac-m01074-z0004-s0001-aux.json" >> saida/resultado.txt 2>&1 || true
+          done
+          head -c 400 saida/aux.json >> saida/resultado.txt || true
+          cat saida/resultado.txt
+      - name: salva
+        run: |
+          git config user.name robo && git config user.email robo@users.noreply.github.com
+          git add saida && git commit -m "teste acesso TSE" && git push origin censo-teste
