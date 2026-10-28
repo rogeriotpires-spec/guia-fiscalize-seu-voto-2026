@@ -47,9 +47,7 @@ for nome in os.listdir(PASTA):
                     pass
 falhas_path = os.path.join(PASTA, 'falhas.json')
 falhas = json.load(open(falhas_path)) if os.path.exists(falhas_path) else {}
-for k, st in falhas.items():
-    if st in ('sem_aux', 'sem_log'):
-        feitas.add(k)
+# falhas são sempre tentadas de novo (custam 1 requisição cada)
 
 secoes = [tuple(r[:4]) for r in csv.reader(open(os.path.join(RAIZ, 'partes', f'parte-{PARTE}.csv')))]
 fila = [s for s in secoes if f'{s[0]}-{s[1]}-{s[2]}-{s[3]}' not in feitas]
