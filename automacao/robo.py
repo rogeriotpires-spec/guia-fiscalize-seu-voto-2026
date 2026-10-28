@@ -557,6 +557,7 @@ def main():
     revisao = marc.get('Revisão manual', {})
 
     envios = [(r, campos(r)) for r in respostas]
+    envios = [e for e in envios if 'TESTE' not in e[1]['municipio'].upper()]  # envios de teste do formulário
     todos = [fid for _, c in envios for fid in c['arquivos']]
     def completo(a):
         b = montar_bu(a.get('qr', [])) if a else None
