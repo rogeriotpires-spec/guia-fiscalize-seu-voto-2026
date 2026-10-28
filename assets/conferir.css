@@ -77,3 +77,15 @@ main.enviar .intro{font-size:20px}
 #mais-qr[hidden],.painel[hidden],form[hidden]{display:none}
 #mais-qr .btn{display:block;width:100%;text-align:center}
 .btn.link[hidden]{display:none}
+.popup{position:fixed;inset:0;background:rgba(0,0,0,.75);display:flex;align-items:center;justify-content:center;z-index:60;padding:20px}
+.popup[hidden]{display:none}
+.popup-caixa{max-width:480px;width:100%;border-radius:18px;padding:24px;border:2px solid}
+.popup-caixa.vermelho{background:#3a1512;border-color:var(--bad);color:#ffd2cc}
+.popup-caixa.amarelo{background:#3a2a0c;border-color:#f2b53b;color:#ffe9b3}
+.popup-caixa h2{margin:0 0 10px;font-size:26px}
+.popup-caixa p{margin:0 0 18px;font-size:16px;color:inherit}
+.popup-botoes{display:flex;flex-direction:column;gap:10px}
+.popup-botoes .btn{text-align:center}
+.popup-caixa.amarelo #forcar{background:#f2b53b;border-color:#f2b53b;color:#16100b;font-weight:800}
+.popup-caixa.vermelho #popup-ver{border-color:var(--bad)}
+.btn[hidden]{display:none}

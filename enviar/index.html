@@ -9,7 +9,7 @@
 <meta property="og:description" content="Em um minuto o boletim da sua seção entra na conferência nacional e é comparado com o TSE.">
 <meta property="og:image" content="https://rogeriotpires-spec.github.io/guia-fiscalize-seu-voto-2026/assets/pagina-6.png">
 <link rel="stylesheet" href="../assets/timeline-header.css?v=5">
-<link rel="stylesheet" href="../assets/conferir.css?v=6">
+<link rel="stylesheet" href="../assets/conferir.css?v=7">
 </head>
 <body>
 <header class="timeline-sitebar" aria-label="Cabeçalho da Revista Timeline">
@@ -118,16 +118,26 @@
       <a class="btn primary" id="ver" href="../boletins/">Ver a minha seção na conferência</a>
       <button class="btn" id="compartilhar" type="button">Compartilhar com quem também fotografou</button>
       <a class="btn" href="./">Enviar outro boletim</a>
-      <button class="btn link" id="forcar" type="button" hidden>Enviar mesmo assim</button>
     </div>
   </section>
 
   <p id="reserva" class="muted pequeno" hidden>Formulário reserva (pede login no Google): <a href="https://forms.gle/6YfsatF9Z5hdLsFx9" target="_blank" rel="noopener noreferrer">abrir</a>.</p>
   <p class="muted pequeno">Ao enviar, você autoriza a publicação da foto do boletim na página Boletins enviados, sem o seu nome. Fotos com rosto ou documento de pessoas não são publicadas.</p>
 </main>
+<div class="popup" id="popup" hidden role="dialog" aria-modal="true" aria-labelledby="popup-titulo">
+  <div class="popup-caixa">
+    <h2 id="popup-titulo"></h2>
+    <p id="popup-texto"></p>
+    <div class="popup-botoes">
+      <a class="btn" id="popup-ver" href="../boletins/">Ver a minha seção</a>
+      <button class="btn" id="forcar" type="button" hidden>Enviar mesmo assim</button>
+      <button class="btn" id="popup-fechar" type="button">Fechar</button>
+    </div>
+  </div>
+</div>
 <footer>REVISTA TIMELINE · FISCALIZE SEU VOTO 2026<br>Conferência nacional dos boletins de urna por Rogerio Pires<br><a href="https://www.instagram.com/rogerrio/" target="_blank" rel="noopener noreferrer">Instagram @rogerrio</a> · <a href="https://x.com/rogerrioX" target="_blank" rel="noopener noreferrer">X @rogerrioX</a></footer>
 <script src="../assets/vendor/zxing/zxing-reader.iife.js" defer></script>
 <script src="../assets/vendor/jsQR.min.js" defer></script>
-<script src="../assets/enviar.js?v=3" defer></script>
+<script src="../assets/enviar.js?v=4" defer></script>
 </body>
 </html>
