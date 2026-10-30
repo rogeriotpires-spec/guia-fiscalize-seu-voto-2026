@@ -83,17 +83,20 @@ def le_vsc(raw):
         sub = der(inner, campos[1][1], campos[1][2])
         out[nome] = (int.from_bytes(inner[sub[0][1]:sub[0][2]], 'big'), inner[sub[1][1]:sub[1][2]].hex())
     cn = None
+    pem_txt = None
     try:
-        k1 = der(raw, kids[1][1], kids[1][2])
-        pem = raw[k1[-1][1]:k1[-1][2]]
-        import base64, re
-        b64 = b''.join(l for l in pem.split(b'\n') if l and not l.startswith(b'-----'))
-        cert = base64.b64decode(b64)
-        m = re.search(rb'UEAO\d{8}', cert)
-        cn = m.group(0).decode() if m else None
+        import re
+        m = re.search(rb'-----BEGIN CERTIFICATE-----.*?-----END CERTIFICATE-----', raw, re.S)
+        if m:
+            pem_txt = m.group(0).decode('ascii', 'ignore')
+            import base64
+            b64 = ''.join(l for l in pem_txt.split('\n') if l and not l.startswith('-----'))
+            cert = base64.b64decode(b64)
+            mm = re.search(rb'UE[A-Z]{2}\d{8}', cert)
+            cn = mm.group(0).decode() if mm else None
     except Exception:
         pass
-    return out, cn
+    return out, cn, pem_txt
 
 
 if __name__ == '__main__':

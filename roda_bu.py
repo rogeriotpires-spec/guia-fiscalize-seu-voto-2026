@@ -72,7 +72,7 @@ def secao(uf, mun, zn, se):
             reg['bu_erro'] = str(e)[:80]
     if 'vota' in dados:
         try:
-            man, cn = le_vsc(dados['vota'][1]); reg['serial'] = cn
+            man, cn, pem = le_vsc(dados['vota'][1]); reg['serial'] = cn; reg['cert'] = pem
             reg['manifesto'] = {k.split('-')[-1]: v for k, v in man.items()}     # 'bu.dat': (tam, sha512)
             chk = {}
             for tp in ('bu', 'rdv'):
