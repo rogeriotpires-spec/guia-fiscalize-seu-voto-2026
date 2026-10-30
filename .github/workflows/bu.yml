@@ -1,0 +1,30 @@
+name: bu-urnas
+on:
+  push:
+    branches: [censo]
+    paths: ['disparo/bu.txt']
+permissions:
+  contents: write
+jobs:
+  parte:
+    runs-on: ubuntu-latest
+    timeout-minutes: 350
+    strategy:
+      fail-fast: false
+      max-parallel: 20
+      matrix:
+        parte: ['00','01','02','03','04','05','06','07','08','09','10','11','12','13','14','15','16','17','18','19','20','21','22','23','24']
+    steps:
+      - uses: actions/checkout@v4
+        with: {ref: censo, fetch-depth: 1}
+      - name: retoma
+        run: |
+          git config user.name robo-censo && git config user.email robo@users.noreply.github.com
+          if git fetch -q origin bu-parte-${{ matrix.parte }} 2>/dev/null; then
+            git checkout -q -B trabalho FETCH_HEAD
+            git checkout -q origin/censo -- rdv.py bu.py roda_bu.py partes
+          else
+            git checkout -q -B trabalho
+          fi
+      - name: coleta
+        run: python3 roda_bu.py ${{ matrix.parte }}
