@@ -14,6 +14,9 @@ on:
       limite:
         description: 'Máximo de arquivos novos nesta rodada'
         default: '600'
+      permitir_queda:
+        description: 'Escreva sim só se você apagou respostas de propósito (libera a trava de lista menor)'
+        default: 'nao'
 
 permissions:
   contents: write
@@ -41,6 +44,7 @@ jobs:
           PONTE_URL: ${{ vars.PONTE_URL }}
           PONTE_TOKEN: ${{ secrets.PONTE_TOKEN }}
           LIMITE_ARQUIVOS: ${{ github.event.inputs.limite || '2000' }}
+          PERMITIR_QUEDA: ${{ github.event.inputs.permitir_queda || 'nao' }}
           MINUTOS_MAX: '25'
           TRABALHADORES: '10'
         run: python automacao/robo.py

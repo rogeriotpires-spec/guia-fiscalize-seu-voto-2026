@@ -3,7 +3,19 @@
  * formulário "Fiscalize seu BU" e grava o painel interno (restrito) no Drive.
  * Roda na conta do Rogerio. Toda chamada exige a senha (TOKEN) guardada nas
  * propriedades do script; sem ela, nada é devolvido.
+ *
+ * Versão 2: as respostas do formulário já lidas ficam guardadas num arquivo
+ * restrito no Drive (pasta dos relatórios). A cada chamada a ponte lê só as
+ * respostas novas, com no máximo 2,5 minutos de trabalho; se ainda faltar
+ * algo, devolve {erro:'preparando'} e o robô chama de novo. Antes disso a
+ * ponte relia o formulário inteiro a cada rodada e passou a demorar mais do
+ * que a conexão aguenta (cerca de 4 minutos).
+ * Depois de colar este código: Implantar > Gerenciar implantações > lápis >
+ * Versão "Nova versão" > Implantar (mantém a mesma URL usada pelo site).
  */
+const VERSAO_PONTE = 2;
+const ORCAMENTO_MS = 150 * 1000;  // trabalho máximo por chamada de 'respostas'
+const NOME_CACHE = 'Fiscalize – Respostas do formulário (cache restrito).json';
 const FORM_ID = '1I5Dtwl42Ix2hc24trXyLfz7p1negFX_7Ftqs6-CYAso';
 const PASTA_UPLOADS = '17QfifUvxcFO45Y08e31PVLSY3StIWu5lchADy5cSFI7Jk3mJduviHsgIE_hobU7gRo9m5SsF';
 const PASTA_RELATORIOS = '14bbCRZvg_iQyCGpEbU904F6LuZWBq6SU';
@@ -153,19 +165,74 @@ function autorizado_(t) {
 function doGet(e) {
   const q = e.parameter || {};
   if (!autorizado_(q.t)) return json_({ erro: 'nao autorizado' });
+  if (q.acao === 'versao') return json_(versao_());
   if (q.acao === 'respostas') return json_(respostas_());
   if (q.acao === 'arquivo') return json_(arquivo_(q.id));
   if (q.acao === 'marcacoes') return json_(marcacoes_());
   return json_({ erro: 'acao desconhecida' });
 }
 
+/** Arquivo restrito no Drive com as respostas do formulário já lidas (tem nome e WhatsApp: nunca vai para o GitHub). */
+function arquivoCache_() {
+  const p = PropertiesService.getScriptProperties();
+  const id = p.getProperty('CACHE_RESPOSTAS');
+  if (id) { try { const f = DriveApp.getFileById(id); if (!f.isTrashed()) return f; } catch (e) { /* recria */ } }
+  const f = DriveApp.getFolderById(PASTA_RELATORIOS).createFile(NOME_CACHE, '{}', MimeType.PLAIN_TEXT);
+  p.setProperty('CACHE_RESPOSTAS', f.getId());
+  return f;
+}
+
+function lerCache_(f) {
+  try {
+    const c = JSON.parse(f.getBlob().getDataAsString('UTF-8') || '{}');
+    if (c && c.v === 1 && c.lista && typeof c.ultimo === 'number') return c;
+  } catch (e) { /* arquivo vazio ou corrompido: refaz */ }
+  return { v: 1, ultimo: 0, lista: {} };
+}
+
+/** Rode pelo editor só se apagar respostas do formulário: o robô refaz a lista nas próximas rodadas. */
+function limparCacheRespostas() {
+  arquivoCache_().setContent('{}');
+  Logger.log('Cache apagado. O robô refaz a lista de respostas nas próximas rodadas.');
+}
+
+function versao_() {
+  const c = lerCache_(arquivoCache_());
+  return { versao: VERSAO_PONTE, cache: Object.keys(c.lista).length, ultimo: c.ultimo ? new Date(c.ultimo).toISOString() : '' };
+}
+
+/** Respostas do formulário (do cache + as novas) e envios do site, no mesmo formato da versão 1. */
 function respostas_() {
+  const t0 = Date.now();
+  const arq = arquivoCache_();
+  const c = lerCache_(arq);
   const form = FormApp.openById(FORM_ID);
-  const doForm = form.getResponses().map(r => ({
-    id: r.getId(),
-    ts: r.getTimestamp().toISOString(),
-    itens: r.getItemResponses().map(ir => ({ t: ir.getItem().getTitle(), tipo: String(ir.getItem().getType()), v: ir.getResponse() }))
-  }));
+  // só o que chegou ou foi editado depois da última resposta guardada (2 s de folga; repetidas são puladas)
+  const novas = (c.ultimo ? form.getResponses(new Date(c.ultimo - 2000)) : form.getResponses())
+    .map(r => ({ r: r, ms: r.getTimestamp().getTime() }))
+    .sort((a, b) => a.ms - b.ms);
+  const perguntas = {};  // título e tipo de cada pergunta, lidos uma vez só
+  let i = 0, lidas = 0;
+  for (; i < novas.length; i++) {
+    // limite de tempo por chamada (sempre avança pelo menos 25, para nunca ficar parada)
+    if (lidas >= 25 && Date.now() - t0 > ORCAMENTO_MS) break;
+    const r = novas[i].r, id = r.getId(), ts = new Date(novas[i].ms).toISOString();
+    if (c.lista[id] && c.lista[id].ts === ts) continue;
+    c.lista[id] = {
+      id: id, ts: ts,
+      itens: r.getItemResponses().map(ir => {
+        const it = ir.getItem(), k = String(it.getId());
+        const q = perguntas[k] || (perguntas[k] = { t: it.getTitle(), tipo: String(it.getType()) });
+        return { t: q.t, tipo: q.tipo, v: ir.getResponse() };
+      })
+    };
+    c.ultimo = Math.max(c.ultimo, novas[i].ms);
+    lidas++;
+  }
+  if (lidas) arq.setContent(JSON.stringify(c));
+  console.log('respostas: ' + lidas + ' lidas agora, ' + Object.keys(c.lista).length + ' no cache, ' + (novas.length - i) + ' faltando, ' + Math.round((Date.now() - t0) / 1000) + ' s');
+  if (i < novas.length) return { erro: 'preparando', prontas: Object.keys(c.lista).length, faltam: novas.length - i };
+  const doForm = Object.keys(c.lista).map(k => c.lista[k]).sort((a, b) => (a.ts < b.ts ? -1 : a.ts > b.ts ? 1 : 0));
   return doForm.concat(enviosSite_());
 }
 

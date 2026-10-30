@@ -17,6 +17,7 @@ import io
 import json
 import os
 import re
+import sys
 import time
 import unicodedata
 import urllib.parse
@@ -102,14 +103,41 @@ def norm(s):
 
 # ----------------------------------------------------------------- ponte
 SESSAO = requests.Session()
+LENTA_S = 120  # tentativa que passa disso e cai conta como "lenta" (a conexão cai perto de 4 min)
+
+
+class PonteIndisponivel(RuntimeError):
+    """A ponte não respondeu. `lenta` = segurou a conexão por minutos antes de cair."""
+
+    def __init__(self, msg, lenta=False):
+        super().__init__('ponte indisponível: ' + msg)
+        self.msg, self.lenta = msg, lenta
+
+
+def _limpa(texto):
+    msg = str(texto).replace(TOKEN, '***') if TOKEN else str(texto)
+    return re.sub(r'https?://\S+', '<url>', msg)[:200]
+
+
+def aviso(nivel, titulo, texto):
+    """Mensagem que aparece no resumo da execução do GitHub (nivel: error, warning ou notice)."""
+    def esc(s, prop=False):
+        s = str(s).replace('%', '%25').replace('\r', '%0D').replace('\n', '%0A')
+        return s.replace(':', '%3A').replace(',', '%2C') if prop else s
+    print(f'::{nivel} title={esc(titulo, True)}::{esc(texto)}', flush=True)
+    resumo = os.environ.get('GITHUB_STEP_SUMMARY')
+    if resumo:
+        with open(resumo, 'a') as f:
+            f.write(f"### {'❌' if nivel == 'error' else '⚠️'} {titulo}\n\n{texto}\n\n")
 
 
 def ponte_get(**q):
     q['t'] = TOKEN
-    msg = ''
-    for tent in range(5):
+    falhas = lentas = preparos = 0
+    while True:
+        t0 = time.time()
         try:
-            r = SESSAO.get(URL, params=q, timeout=300)
+            r = SESSAO.get(URL, params=q, timeout=(30, 300))
             r.raise_for_status()
             try:
                 d = r.json()
@@ -117,18 +145,29 @@ def ponte_get(**q):
                 titulo = re.search(r'<title>(.*?)</title>', r.text or '', re.S)
                 raise ValueError(f"resposta não é JSON (HTTP {r.status_code}, {r.headers.get('content-type')}, "
                                  f"página: {titulo.group(1).strip()[:80] if titulo else '?'})")
+            if isinstance(d, dict) and d.get('erro') == 'preparando' and preparos < 12:
+                # a ponte monta a lista aos poucos e guarda no Drive: cada chamada avança um trecho
+                preparos += 1
+                log(f"ponte montando a lista de respostas: {d.get('prontas')} prontas, faltam {d.get('faltam')}")
+                time.sleep(2)
+                continue
             if isinstance(d, dict) and d.get('erro'):
-                raise RuntimeError('ponte: ' + d['erro'])
+                raise RuntimeError('ponte: ' + str(d['erro']))
             return d
         except RuntimeError:
             raise
         except Exception as e:  # noqa: BLE001
-            espera = 5 * (tent + 1)
-            msg = str(e).replace(TOKEN, '***') if TOKEN else str(e)
-            msg = re.sub(r'https?://\S+', '<url>', msg)[:200]
-            log(f'ponte falhou ({type(e).__name__}: {msg}), nova tentativa em {espera}s')
+            dur = time.time() - t0
+            falhas += 1
+            lentas += dur > LENTA_S
+            msg = _limpa(e)
+            log(f'ponte falhou depois de {dur:.0f}s ({type(e).__name__}: {msg})')
+            # se a ponte segurou a conexão por minutos e caiu, repetir a mesma pergunta não adianta
+            if falhas >= 5 or lentas >= 2:
+                raise PonteIndisponivel(msg, lenta=lentas > 0)
+            espera = 5 * falhas
+            log(f'nova tentativa em {espera}s')
             time.sleep(espera)
-    raise RuntimeError('ponte indisponível: ' + msg)
 
 
 def ponte_post(corpo):
@@ -567,14 +606,61 @@ def main():
         return
     estado = json.load(open(ESTADO)) if os.path.exists(ESTADO) else {'arquivos': {}}
     cache = estado['arquivos']
-    respostas = ponte_get(acao='respostas')
-    log(f'{len(respostas)} respostas no formulário')
-    marc = ponte_get(acao='marcacoes')
+    falhas_rede = estado.setdefault('falhas_rede', {})  # arquivo -> {desde, n}: rodadas sem conseguir baixar
+    try:
+        try:
+            v = ponte_get(acao='versao')
+            log(f"ponte versão {v.get('versao')}: {v.get('cache')} respostas do formulário no cache")
+        except PonteIndisponivel:
+            raise
+        except RuntimeError as e:  # a versão 1 da ponte não conhece a ação 'versao'
+            if 'acao desconhecida' not in str(e):
+                raise
+            aviso('warning', 'Ponte desatualizada',
+                  'A ponte publicada no Google ainda é a versão antiga, que relê o formulário inteiro a cada rodada '
+                  'e passa de 4 minutos. Cole o código de automacao/ponte.gs no Apps Script e publique uma nova '
+                  'versão da mesma implantação (Implantar > Gerenciar implantações > lápis > Nova versão).')
+        respostas = ponte_get(acao='respostas')
+        log(f'{len(respostas)} respostas no formulário')
+        marc = ponte_get(acao='marcacoes')
+    except PonteIndisponivel as e:
+        if e.lenta:
+            aviso('error', 'A ponte do Google não respondeu a tempo',
+                  'A ponte (Apps Script) segurou a conexão por mais de 2 minutos e caiu sem responder, duas vezes. '
+                  'Isso acontece quando ela demora demais para montar a lista de respostas. Confira se a ponte '
+                  'publicada é a versão 2 (automacao/ponte.gs) e veja o erro em Execuções, no Apps Script. '
+                  'Nada foi alterado no site.')
+        else:
+            aviso('error', 'Sem conexão com a ponte do Google',
+                  f'Não foi possível falar com a ponte (Apps Script) em 5 tentativas ({e.msg}). '
+                  'Pode ser instabilidade do Google; a próxima rodada tenta de novo. Nada foi alterado no site.')
+        sys.exit(1)
+    except RuntimeError as e:
+        if 'preparando' in str(e):
+            aviso('warning', 'A ponte ainda está montando a lista',
+                  'A ponte guarda a lista de respostas aos poucos e ainda não terminou. A próxima rodada continua '
+                  'de onde esta parou. Nada foi alterado no site.')
+            return
+        aviso('error', 'A ponte recusou o pedido',
+              f'{_limpa(e)}. Se for "nao autorizado", a senha PONTE_TOKEN do GitHub não confere com a da ponte. '
+              'Nada foi alterado no site.')
+        sys.exit(1)
     aprovadas = {k for k, v in marc.get('Divergências para aprovar', {}).items() if v.get('Aprovar publicação') is True}
     revisao = marc.get('Revisão manual', {})
 
     envios = [(r, campos(r)) for r in respostas]
     envios = [e for e in envios if 'TESTE' not in e[1]['municipio'].upper()]  # envios de teste do formulário
+    # trava de segurança: se a lista vier bem menor que a publicada, não mexe no site (nem apaga fotos)
+    try:
+        anterior = int(json.load(open(SAIDA))['placar']['envios'])
+    except Exception:  # noqa: BLE001
+        anterior = 0
+    if anterior >= 50 and len(envios) < 0.9 * anterior and os.environ.get('PERMITIR_QUEDA', '').lower() != 'sim':
+        aviso('error', 'A lista de envios encolheu',
+              f'A ponte devolveu {len(envios)} envios, mas o painel publicado tem {anterior}. Por segurança nada foi '
+              'alterado no site. Se você apagou respostas de propósito, rode o robô manualmente com '
+              '"permitir_queda" = sim.')
+        sys.exit(1)
     todos = [fid for _, c in envios for fid in c['arquivos']]
     def completo(a):
         b = montar_bu(a.get('qr', [])) if a else None
@@ -588,10 +674,13 @@ def main():
     def tarefa(fid):
         try:
             return fid, *processar_arquivo(fid)
+        except PonteIndisponivel:
+            return fid, None, None  # falha de rede: tenta de novo na próxima rodada
         except Exception as e:  # noqa: BLE001
             return fid, {'v': VERSAO, 'erro': type(e).__name__, 'qr': [], 'ocr': {}}, None
 
     feitos = 0
+    falhou = []  # downloads que falharam por rede nesta rodada (ficam na fila)
     limite = int(os.environ.get('LIMITE_ARQUIVOS', '100000'))
     # tempo máximo de processamento por rodada: o que sobrar fica para a próxima
     prazo = time.time() + 60 * float(os.environ.get('MINUTOS_MAX', '25'))
@@ -601,12 +690,29 @@ def main():
             if time.time() > prazo:
                 log(f'tempo da rodada esgotado; {len(fila) - i} arquivos ficam para a próxima')
                 break
+            if len(falhou) >= 20:
+                log(f'ponte instável ({len(falhou)} downloads falharam); {len(fila) - i} arquivos ficam para a próxima')
+                break
             for fid, res, img in ex.map(tarefa, fila[i:i + 20]):
+                if res is None:
+                    falhou.append(fid)
+                    continue
+                falhas_rede.pop(h(fid), None)
                 cache[h(fid)] = res
                 if img is not None:
                     imagens[h(fid)] = img
                 feitos += 1
             log(f'{feitos}/{len(novos)} arquivos processados')
+    if falhou:
+        log(f'{len(falhou)} arquivos sem download nesta rodada; tentam de novo na próxima')
+        agora_s = time.time()
+        for fid in falhou:
+            f = falhas_rede.setdefault(h(fid), {'desde': agora_s, 'n': 0})
+            f['n'] += 1
+            # o que não baixa há mais de 24 h (cotas do Google zeram por dia) passa a constar como arquivo que não abriu
+            if f['n'] >= 3 and agora_s - f['desde'] > 24 * 3600:
+                cache[h(fid)] = {'v': VERSAO, 'erro': 'sem_download', 'qr': [], 'ocr': {}}
+                del falhas_rede[h(fid)]
 
     # classificação por envio
     vistos_sha = {}
