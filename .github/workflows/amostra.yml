@@ -1,0 +1,30 @@
+name: amostra-arquivos
+on:
+  push:
+    branches: [censo]
+    paths: ['disparo/amostra.txt']
+permissions:
+  contents: write
+jobs:
+  amostra:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with: {ref: censo, fetch-depth: 1}
+      - name: baixa
+        run: |
+          set -e
+          mkdir -p amostra
+          B="https://resultados.tse.jus.br/oficial/ele2026/arquivo-urna/3221/dados"
+          for s in "ac/01074/0004/0001" "sp/71072/0001/0001" "ba/38490/0001/0001"; do
+            uf=$(echo $s|cut -d/ -f1); mun=$(echo $s|cut -d/ -f2); zn=$(echo $s|cut -d/ -f3); se=$(echo $s|cut -d/ -f4)
+            d=amostra/$uf-$mun-$zn-$se; mkdir -p $d
+            curl -sS -o $d/aux.json "$B/$s/p003221-$uf-m$mun-z$zn-s$se-aux.json"
+            h=$(python3 -c "import json;j=json.load(open('$d/aux.json'));print(j['hashes'][0]['hash'])")
+            for nm in $(python3 -c "import json;j=json.load(open('$d/aux.json'));print(' '.join(a['nm'] for a in j['hashes'][0]['arq']))"); do
+              curl -sS -o $d/$nm "$B/$s/$h/$nm"
+            done
+            ls -la $d
+          done
+          git config user.name robo-censo && git config user.email robo@users.noreply.github.com
+          git checkout -q -B amostra && git add amostra && git commit -qm "amostra de arquivos de urna" && git push -q -f origin HEAD:censo-amostra
