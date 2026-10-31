@@ -103,20 +103,28 @@
       const lista = g[uf] || []; const t = soma(lista); const o = oficial[uf];
       const tr = el('tr', 'clicavel'); tr.tabIndex = 0;
       const n = el('td'); n.append(el('strong', '', uf), el('span', 'uf-nome', ' ' + (UFS[uf] || '')));
-      tr.append(n, el('td', 'num', fmt(t.n)), celMeta(t.n, metas ? metas.uf[uf] : 0));
+      tr.append(n, el('td', 'num', fmt(t.n)));
       if (lista.length) {
-        const mg = margem(uf, t.n);
-        tr.append(el('td', 'num lula-c', pct(t.lula, t.validos, 1)), el('td', 'num flavio-c', pct(t.flavio, t.validos, 1)), el('td', 'num margem', mg ? fmtPP(mg) : '–'));
+        tr.append(el('td', 'num lula-c', pct(t.lula, t.validos, 1)), el('td', 'num flavio-c', pct(t.flavio, t.validos, 1)));
         const td = el('td', 'col-barra'); td.append(barraDupla(t)); tr.append(td);
       } else {
-        const td = el('td', 'muted', 'nenhum boletim ainda'); td.colSpan = 4; tr.append(td);
+        const td = el('td', 'muted', 'nenhum boletim ainda'); td.colSpan = 3; tr.append(td);
       }
       tr.append(el('td', 'of', o ? `Lula ${pct(o.lula, o.lula + o.flavio, 1)} · Flávio ${pct(o.flavio, o.lula + o.flavio, 1)}` : ''));
+      // linha de apoio: meta de envios + margem de erro
+      const sub = el('tr', 'sub'); const sd = el('td', 'sub-cel'); sd.colSpan = 6;
+      const alvo = metas ? metas.uf[uf] : 0; const mg = margem(uf, t.n);
+      const bl = el('div', 'sub-meta'); bl.append(el('span', 'sub-rotulo', 'Meta de envios'));
+      bl.append(...[...celMeta(t.n, alvo).childNodes]);
+      const mb = el('div', 'sub-margem'); mb.append(el('span', 'sub-rotulo', 'Margem de erro'), el('strong', '', mg ? fmtPP(mg) : (lista.length ? '–' : 'sem boletins')));
+      const wrap = el('div', 'sub-cel-in'); wrap.append(bl, mb); sd.append(wrap); sub.append(sd);
       if (lista.length) {
         const ir = () => { $('m-uf').value = uf; $('m-busca').value = ''; municipios(); $('sec-mun').scrollIntoView({ behavior: 'smooth' }); };
         tr.addEventListener('click', ir);
         tr.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); ir(); } });
       } else tr.classList.remove('clicavel');
+      tb.append(tr, sub);
+      return;
       tb.append(tr);
     });
     const sel = $('m-uf');

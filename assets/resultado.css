@@ -49,8 +49,18 @@ tr.clicavel:focus{outline:2px solid var(--orange);outline-offset:-2px}
 .meta-falta{font-size:11px;color:var(--orange);font-weight:700}
 .meta-falta.ok{color:var(--ok)}
 @media(max-width:560px){.meta-nums{grid-template-columns:repeat(2,minmax(0,1fr))}.tabela.res .col-meta{min-width:110px}.meta-mini .barra.fina{min-width:80px}}
-@media(max-width:560px){#tab-uf th:nth-child(2),#tab-uf td:nth-child(2){display:none}}
+
 
 .margem-nac{color:var(--mut);font-size:13px;margin:10px 0 0}
 .tabela.res .margem{color:#ddd;font-size:12px;white-space:nowrap}
 @media(max-width:560px){.tabela.res .margem{font-size:11px}}
+
+.tabela.res tr.sub td.sub-cel{padding:4px 10px 12px;border-top:0;background:transparent}
+.tabela.res tr.clicavel+tr.sub{border-bottom:1px solid #242424}
+.sub-cel-in{display:flex;gap:28px;align-items:flex-end;flex-wrap:wrap}
+.sub-meta{display:flex;flex-direction:column;gap:3px;min-width:200px}
+.sub-meta .barra.fina{margin-top:0;height:6px;min-width:180px}
+.sub-rotulo{font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--mut)}
+.sub-margem{display:flex;flex-direction:column;gap:2px}
+.sub-margem strong{font-size:14px;color:#eee;font-variant-numeric:tabular-nums}
+@media(max-width:560px){.sub-cel-in{gap:14px}.sub-meta{min-width:150px}.sub-meta .barra.fina{min-width:130px}}
