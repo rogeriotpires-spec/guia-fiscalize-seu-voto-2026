@@ -50,3 +50,7 @@ tr.clicavel:focus{outline:2px solid var(--orange);outline-offset:-2px}
 .meta-falta.ok{color:var(--ok)}
 @media(max-width:560px){.meta-nums{grid-template-columns:repeat(2,minmax(0,1fr))}.tabela.res .col-meta{min-width:110px}.meta-mini .barra.fina{min-width:80px}}
 @media(max-width:560px){#tab-uf th:nth-child(2),#tab-uf td:nth-child(2){display:none}}
+
+.margem-nac{color:var(--mut);font-size:13px;margin:10px 0 0}
+.tabela.res .margem{color:#ddd;font-size:12px;white-space:nowrap}
+@media(max-width:560px){.tabela.res .margem{font-size:11px}}

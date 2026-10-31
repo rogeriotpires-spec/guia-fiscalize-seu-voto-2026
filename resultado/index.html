@@ -11,7 +11,7 @@
 <link rel="stylesheet" href="../assets/timeline-header.css?v=5">
 <link rel="stylesheet" href="../assets/conferir.css?v=3">
 <link rel="stylesheet" href="../assets/boletins.css?v=2">
-<link rel="stylesheet" href="../assets/resultado.css?v=9&x=2">
+<link rel="stylesheet" href="../assets/resultado.css?v=10">
 </head>
 <body>
 <header class="timeline-sitebar" aria-label="Cabeçalho da Revista Timeline">
@@ -83,7 +83,7 @@
     <h2 id="t-uf">Por estado</h2>
     <p class="muted">Boletins conferidos em cada estado, a meta de seções e o resultado oficial do TSE no estado inteiro. Toque em um estado para ver os municípios.</p>
     <div class="tabela-rolagem"><table class="tabela res" id="tab-uf">
-      <thead><tr><th scope="col">Estado</th><th scope="col">Seções</th><th scope="col" class="col-meta">Meta</th><th scope="col">Lula</th><th scope="col">Flávio</th><th scope="col" class="col-barra">Boletins conferidos</th><th scope="col">TSE no estado</th></tr></thead>
+      <thead><tr><th scope="col">Estado</th><th scope="col">Seções</th><th scope="col" class="col-meta">Meta</th><th scope="col">Lula</th><th scope="col">Flávio</th><th scope="col">Margem</th><th scope="col" class="col-barra">Boletins conferidos</th><th scope="col">TSE no estado</th></tr></thead>
       <tbody></tbody>
     </table></div>
   </section>
@@ -99,6 +99,11 @@
       <tbody></tbody>
     </table></div>
     <div class="mais"><button class="btn" id="m-mais" hidden>Mostrar mais municípios</button></div>
+  </section>
+
+  <section class="painel" id="sec-margem">
+    <h2>Como a margem de erro é calculada</h2>
+    <p class="muted" id="metodo-margem">Carregando…</p>
   </section>
 
   <section class="painel">
@@ -121,6 +126,6 @@
   </section>
 </main>
 <footer>REVISTA TIMELINE · FISCALIZE SEU VOTO 2026<br>Conferência nacional dos boletins de urna por Rogerio Pires<br><a href="https://www.instagram.com/rogerrio/" target="_blank" rel="noopener noreferrer">Instagram @rogerrio</a> · <a href="https://x.com/rogerrioX" target="_blank" rel="noopener noreferrer">X @rogerrioX</a></footer>
-<script src="../assets/resultado.js?v=2" defer></script>
+<script src="../assets/resultado.js?v=3" defer></script>
 </body>
 </html>

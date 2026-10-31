@@ -44,6 +44,9 @@
       grade.append(c);
     });
     box.append(grade, barraDupla(t));
+    const g = {}; secoes.forEach(s => (g[s.uf] = g[s.uf] || []).push(s));
+    const mn = margemNacional(g);
+    if (mn) box.append(el('p', 'margem-nac', `Margem de erro desta amostra: ${fmtPP(mn.m)} (95% de confiança), considerando o peso de cada estado nos votos válidos; estados com boletim cobrem ${pct(mn.cob, 1, 1)} do eleitorado. A margem mede o erro de amostragem e não corrige o viés de quem escolhe enviar.`));
     const tot = t.validos + t.brancos + t.nulos;
     const r = el('dl', 'apur-resumo');
     [['Votos válidos', fmt(t.validos)], ['Brancos', `${fmt(t.brancos)} (${pct(t.brancos, tot)})`], ['Nulos', `${fmt(t.nulos)} (${pct(t.nulos, tot)})`], ['Total apurado', fmt(tot)]]
@@ -64,6 +67,17 @@
     $('meta-nac-fill').style.width = Math.min(100, Math.max(1, 100 * ok / alvo)) + '%';
     if (ok >= alvo) $('meta-nac-fill').classList.add('ok');
   }
+  function margem(uf, n) {
+    if (!metas || !metas.sigma || !metas.sigma[uf] || !n) return null;
+    return 1.96 * metas.sigma[uf] / Math.sqrt(n);
+  }
+  function margemNacional(g) {
+    if (!metas || !metas.sigma) return null;
+    let v = 0, cob = 0;
+    Object.keys(g).forEach(uf => { const n = g[uf].length, w = metas.peso[uf], sg = metas.sigma[uf]; if (n && w && sg) { v += (w * sg) * (w * sg) / n; cob += w; } });
+    return cob ? { m: 1.96 * Math.sqrt(v), cob } : null;
+  }
+  const fmtPP = (x) => '±' + x.toLocaleString('pt-BR', { minimumFractionDigits: 1, maximumFractionDigits: 1 }) + ' p.p.';
   function celMeta(n, alvo) {
     const td = el('td', 'col-meta');
     if (!alvo) { td.textContent = '–'; return td; }
@@ -91,10 +105,11 @@
       const n = el('td'); n.append(el('strong', '', uf), el('span', 'uf-nome', ' ' + (UFS[uf] || '')));
       tr.append(n, el('td', 'num', fmt(t.n)), celMeta(t.n, metas ? metas.uf[uf] : 0));
       if (lista.length) {
-        tr.append(el('td', 'num lula-c', pct(t.lula, t.validos, 1)), el('td', 'num flavio-c', pct(t.flavio, t.validos, 1)));
+        const mg = margem(uf, t.n);
+        tr.append(el('td', 'num lula-c', pct(t.lula, t.validos, 1)), el('td', 'num flavio-c', pct(t.flavio, t.validos, 1)), el('td', 'num margem', mg ? fmtPP(mg) : '–'));
         const td = el('td', 'col-barra'); td.append(barraDupla(t)); tr.append(td);
       } else {
-        const td = el('td', 'muted', 'nenhum boletim ainda'); td.colSpan = 3; tr.append(td);
+        const td = el('td', 'muted', 'nenhum boletim ainda'); td.colSpan = 4; tr.append(td);
       }
       tr.append(el('td', 'of', o ? `Lula ${pct(o.lula, o.lula + o.flavio, 1)} · Flávio ${pct(o.flavio, o.lula + o.flavio, 1)}` : ''));
       if (lista.length) {
@@ -161,5 +176,6 @@
     const at = new Date(d.atualizado);
     $('atualizado').textContent = 'Atualizado em ' + at.toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short', timeZone: 'America/Sao_Paulo' }) + ' (horário de Brasília). Atualização automática a cada 30 minutos.';
     totalizacao(); metaNacional(); porUF(); municipios();
+    if (metas && metas.metodo) $('metodo-margem').textContent = metas.metodo + ' Exemplo: um estado com σ = 12 e 36 seções conferidas tem margem de 1,96 × 12 ÷ 6 = ±3,9 pontos.';
   }).catch(() => { $('atualizado').textContent = 'Não foi possível carregar os dados agora. Tente de novo em alguns minutos.'; });
 })();
