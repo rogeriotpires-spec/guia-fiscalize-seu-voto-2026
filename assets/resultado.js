@@ -6,7 +6,7 @@
   const fmt = (n) => (n ?? 0).toLocaleString('pt-BR');
   const pct = (v, b, d = 2) => b ? (100 * v / b).toLocaleString('pt-BR', { minimumFractionDigits: d, maximumFractionDigits: d }) + '%' : '0%';
   const POR_PAGINA = 30;
-  let secoes = [], oficial = {}, munLista = [], munMostrados = 0;
+  let secoes = [], oficial = {}, metas = null, munLista = [], munMostrados = 0;
 
   function el(tag, cls, txt) {
     const e = document.createElement(tag);
@@ -51,6 +51,30 @@
     box.append(r);
   }
 
+  function metaNacional() {
+    if (!metas) return;
+    const ok = secoes.length, alvo = metas.nacional, falta = Math.max(0, alvo - ok);
+    $('meta-nac-alvo').textContent = fmt(alvo);
+    $('meta-prazo').textContent = metas.prazo_texto;
+    $('meta-nac-ok').textContent = fmt(ok);
+    $('meta-nac-falta').textContent = falta ? fmt(falta) : 'meta atingida';
+    $('meta-nac-pct').textContent = pct(Math.min(ok, alvo), alvo, 1);
+    const dias = (new Date(metas.prazo) - Date.now()) / 86400000;
+    $('meta-dias').textContent = dias <= 0 ? 'prazo encerrado' : dias < 1 ? Math.max(1, Math.round(dias * 24)) + ' h' : Math.ceil(dias) + (Math.ceil(dias) === 1 ? ' dia' : ' dias');
+    $('meta-nac-fill').style.width = Math.min(100, Math.max(1, 100 * ok / alvo)) + '%';
+    if (ok >= alvo) $('meta-nac-fill').classList.add('ok');
+  }
+  function celMeta(n, alvo) {
+    const td = el('td', 'col-meta');
+    if (!alvo) { td.textContent = '–'; return td; }
+    const falta = Math.max(0, alvo - n);
+    const w = el('div', 'meta-mini');
+    const b = el('div', 'barra fina meta-barra'); const f = el('div', 'barra-fill meta-fill' + (falta ? '' : ' ok')); f.style.width = Math.min(100, Math.max(2, 100 * n / alvo)) + '%'; b.append(f);
+    w.append(el('span', 'meta-txt', `${fmt(n)} de ${fmt(alvo)}`), b, el('span', 'meta-falta' + (falta ? '' : ' ok'), falta ? `faltam ${fmt(falta)}` : '✓ meta atingida'));
+    td.append(w);
+    return td;
+  }
+
   function linhaRes(tr, t) {
     tr.append(el('td', 'num', fmt(t.n)), el('td', 'num lula-c', pct(t.lula, t.validos, 1)), el('td', 'num flavio-c', pct(t.flavio, t.validos, 1)));
     const td = el('td', 'col-barra'); td.append(barraDupla(t)); tr.append(td);
@@ -59,16 +83,25 @@
   function porUF() {
     const g = {};
     secoes.forEach(s => (g[s.uf] = g[s.uf] || []).push(s));
+    const ufs = new Set(Object.keys(g)); if (metas) Object.keys(metas.uf).forEach(u => ufs.add(u));
     const tb = $('tab-uf').querySelector('tbody'); tb.textContent = '';
-    Object.keys(g).sort((a, b) => g[b].length - g[a].length || a.localeCompare(b)).forEach(uf => {
-      const t = soma(g[uf]); const o = oficial[uf];
+    [...ufs].sort((a, b) => ((g[b] || []).length - (g[a] || []).length) || a.localeCompare(b)).forEach(uf => {
+      const lista = g[uf] || []; const t = soma(lista); const o = oficial[uf];
       const tr = el('tr', 'clicavel'); tr.tabIndex = 0;
       const n = el('td'); n.append(el('strong', '', uf), el('span', 'uf-nome', ' ' + (UFS[uf] || '')));
-      tr.append(n); linhaRes(tr, t);
+      tr.append(n, el('td', 'num', fmt(t.n)), celMeta(t.n, metas ? metas.uf[uf] : 0));
+      if (lista.length) {
+        tr.append(el('td', 'num lula-c', pct(t.lula, t.validos, 1)), el('td', 'num flavio-c', pct(t.flavio, t.validos, 1)));
+        const td = el('td', 'col-barra'); td.append(barraDupla(t)); tr.append(td);
+      } else {
+        const td = el('td', 'muted', 'nenhum boletim ainda'); td.colSpan = 3; tr.append(td);
+      }
       tr.append(el('td', 'of', o ? `Lula ${pct(o.lula, o.lula + o.flavio, 1)} · Flávio ${pct(o.flavio, o.lula + o.flavio, 1)}` : ''));
-      const ir = () => { $('m-uf').value = uf; $('m-busca').value = ''; municipios(); $('sec-mun').scrollIntoView({ behavior: 'smooth' }); };
-      tr.addEventListener('click', ir);
-      tr.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); ir(); } });
+      if (lista.length) {
+        const ir = () => { $('m-uf').value = uf; $('m-busca').value = ''; municipios(); $('sec-mun').scrollIntoView({ behavior: 'smooth' }); };
+        tr.addEventListener('click', ir);
+        tr.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); ir(); } });
+      } else tr.classList.remove('clicavel');
       tb.append(tr);
     });
     const sel = $('m-uf');
@@ -115,8 +148,9 @@
   Promise.all([
     fetch('../data/bus/painel.json', { cache: 'no-cache' }).then(r => r.json()),
     fetch('../data/2t/oficial_uf.json').then(r => r.json()),
-  ]).then(([d, of]) => {
-    oficial = of;
+    fetch('../data/2t/metas.json', { cache: 'no-cache' }).then(r => r.json()).catch(() => null),
+  ]).then(([d, of, m]) => {
+    oficial = of; metas = m;
     const vistos = new Map();
     d.itens.forEach(i => {
       if (!(i.status === 'confere' || i.status === 'confere_numeros') || !i.lido || !i.uf || !i.mun) return;
@@ -126,6 +160,6 @@
     secoes = [...vistos.values()];
     const at = new Date(d.atualizado);
     $('atualizado').textContent = 'Atualizado em ' + at.toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short', timeZone: 'America/Sao_Paulo' }) + ' (horário de Brasília). Atualização automática a cada 30 minutos.';
-    totalizacao(); porUF(); municipios();
+    totalizacao(); metaNacional(); porUF(); municipios();
   }).catch(() => { $('atualizado').textContent = 'Não foi possível carregar os dados agora. Tente de novo em alguns minutos.'; });
 })();
