@@ -1,0 +1,27 @@
+name: estaduais-1t
+on:
+  push:
+    branches: [censo]
+    paths: ['disparo/estaduais.txt']
+permissions:
+  contents: write
+jobs:
+  parte:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    strategy:
+      fail-fast: false
+      matrix:
+        ufs: ['AC,AL,AM,AP,BA,CE,DF', 'ES,GO,MA,MG,MS,MT,PA', 'PB,PE,PI,PR,RJ,RN,RO', 'RR,RS,SC,SE,SP,TO']
+    steps:
+      - uses: actions/checkout@v4
+        with: {ref: censo, fetch-depth: 1}
+      - run: pip install duckdb
+      - run: python3 estaduais/extrai.py "${{ matrix.ufs }}"
+      - name: publica
+        run: |
+          git config user.name robo-censo && git config user.email robo@users.noreply.github.com
+          git checkout -q -B trabalho
+          git add -f estaduais/saida && git commit -qm "estaduais 1T ${{ matrix.ufs }}"
+          P=$(echo "${{ matrix.ufs }}" | cut -c1-2)
+          for i in 1 2 3 4 5; do git push -q origin HEAD:estaduais-$P && break || sleep 10; done
