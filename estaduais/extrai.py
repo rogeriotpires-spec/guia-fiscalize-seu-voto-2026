@@ -13,7 +13,7 @@ for uf in UFS:
     z=zipfile.ZipFile(io.BytesIO(raw)); nome=[n for n in z.namelist() if n.endswith('.csv')][0]
     open(f'estaduais/{uf}.csv','wb').write(z.read(nome))
     con=duckdb.connect()
-    con.execute(f"""copy (select SG_UF uf, lpad(cast(CD_MUNICIPIO as varchar),5,'0') mun, NR_ZONA zn, NR_SECAO se, NR_TURNO turno, CD_CARGO cargo, NR_VOTAVEL nr, NM_VOTAVEL nome, SG_PARTIDO partido, sum(QT_VOTOS) votos
+    con.execute(f"""copy (select SG_UF uf, lpad(cast(CD_MUNICIPIO as varchar),5,'0') mun, NR_ZONA zn, NR_SECAO se, NR_TURNO turno, CD_CARGO cargo, NR_VOTAVEL nr, NM_VOTAVEL nome, sum(QT_VOTOS) votos
       from read_csv('estaduais/{uf}.csv', delim=';', header=true, encoding='latin-1', all_varchar=false, ignore_errors=true)
       where CD_CARGO in (3,5) group by all) to 'estaduais/saida/{uf}.csv.gz' (header, delimiter ';', compression gzip)""")
     os.remove(f'estaduais/{uf}.csv'); print(uf,'ok',os.path.getsize(f'estaduais/saida/{uf}.csv.gz'),flush=True)
