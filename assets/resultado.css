@@ -64,3 +64,19 @@ tr.clicavel:focus{outline:2px solid var(--orange);outline-offset:-2px}
 .sub-margem{display:flex;flex-direction:column;gap:2px}
 .sub-margem strong{font-size:14px;color:#eee;font-variant-numeric:tabular-nums}
 @media(max-width:560px){.sub-cel-in{gap:14px}.sub-meta{min-width:150px}.sub-meta .barra.fina{min-width:130px}}
+
+/* === TEMA CLARO (gerado) === */
+html:is([data-tema="claro"],[data-tema="mesclado"]) .tot-cand.lula{background:#edc8c5}
+html:is([data-tema="claro"],[data-tema="mesclado"]) .tot-cand.flavio{background:#b8c9ec}
+html:is([data-tema="claro"],[data-tema="mesclado"]) .tot-part,html:is([data-tema="claro"],[data-tema="mesclado"]) .tot-votos,html:is([data-tema="claro"],[data-tema="mesclado"]) .tot-of{color:#332d27}
+html:is([data-tema="claro"],[data-tema="mesclado"]) .tabela.res .lula-c{color:#cc1500}
+html:is([data-tema="claro"],[data-tema="mesclado"]) .tabela.res .flavio-c{color:#001b62}
+html:is([data-tema="claro"],[data-tema="mesclado"]) tr.clicavel:hover td,html:is([data-tema="claro"],[data-tema="mesclado"]) tr.clicavel:focus td{background:#ece0d4}
+html:is([data-tema="claro"],[data-tema="mesclado"]) .meta{border-color:#ebba94;background:linear-gradient(135deg,#f7ece2,#f1e8df 60%)}
+html:is([data-tema="claro"],[data-tema="mesclado"]) .meta-nums div{background:#f4eee8}
+html:is([data-tema="claro"],[data-tema="mesclado"]) .meta-barra{background:#e7d9cb}
+html:is([data-tema="claro"],[data-tema="mesclado"]) .meta-txt{color:#26221e}
+html:is([data-tema="claro"],[data-tema="mesclado"]) .tabela.res .margem{color:#26221e}
+html:is([data-tema="claro"],[data-tema="mesclado"]) .tabela.res tr.clicavel+tr.sub{border-bottom:1px solid #e9dbcd}
+html:is([data-tema="claro"],[data-tema="mesclado"]) .sub-margem strong{color:#1a1714}
+/* === FIM TEMA CLARO === */

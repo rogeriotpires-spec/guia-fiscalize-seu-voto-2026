@@ -63,3 +63,20 @@ main.largo{max-width:1080px}
 @media(max-width:560px){.apur-resumo{grid-template-columns:repeat(2,minmax(0,1fr))}}
 
 .placar .equacao{grid-column:1/-1;margin:0;color:var(--mut);font-size:13px;font-variant-numeric:tabular-nums;text-align:center}
+
+/* === TEMA CLARO (gerado) === */
+html:is([data-tema="claro"],[data-tema="mesclado"]) .card.destaque{background:#cfeddb}
+html:is([data-tema="claro"],[data-tema="mesclado"]) .card.destaque .valor{color:#0a371a}
+html:is([data-tema="claro"],[data-tema="mesclado"]) .tag.ok{background:#cfeddb;color:#0a371a}
+html:is([data-tema="claro"],[data-tema="mesclado"]) .tag.neutro{background:#ebded1;border-color:#cdb394;color:#3b250d}
+html:is([data-tema="claro"],[data-tema="mesclado"]) .tag.cinza{background:#eaddd0;border-color:#c3bbb3;color:#4c443c}
+html:is([data-tema="claro"],[data-tema="mesclado"]) .mini tr.dif td{color:#560a00}
+html:is([data-tema="claro"],[data-tema="mesclado"]) .foto{background:#f6f1ec}
+html:is([data-tema="claro"],[data-tema="mesclado"]) .visor{background:rgba(246,241,236,0.92)}
+html:is([data-tema="claro"],[data-tema="mesclado"]) .visor .fechar{background:#eaddd0;color:#1a1714;border:1px solid #b4aaa0}
+html:is([data-tema="claro"],[data-tema="mesclado"]) .credito{color:#3c3630}
+html:is([data-tema="claro"],[data-tema="mesclado"]) .barra{background:#e7d9cb}
+html:is([data-tema="claro"],[data-tema="mesclado"]) .apur-resumo div{background:#f4eee8}
+html:is([data-tema="claro"],[data-tema="mesclado"]) .siga{background:linear-gradient(135deg,#f9e3d5,#f1e8df 60%);border:1px solid #ebba94}
+html:is([data-tema="claro"],[data-tema="mesclado"]) .siga p{color:#26221e}
+/* === FIM TEMA CLARO === */

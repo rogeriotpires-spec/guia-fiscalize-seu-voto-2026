@@ -89,3 +89,30 @@ main.enviar .intro{font-size:20px}
 .popup-caixa.amarelo #forcar{background:#f2b53b;border-color:#f2b53b;color:#16100b;font-weight:800}
 .popup-caixa.vermelho #popup-ver{border-color:var(--bad)}
 .btn[hidden]{display:none}
+
+/* === TEMA CLARO (gerado) === */
+html:is([data-tema="claro"],[data-tema="mesclado"]){color-scheme:light;--bg:#f6f1ec;--card:#f1e8df;--line:#d6d0ca;--txt:#1f170f;--mut:#524c46;--bad:#b1251b}
+html:is([data-tema="claro"],[data-tema="mesclado"]) .intro{color:#3c3630}
+html:is([data-tema="claro"],[data-tema="mesclado"]) .passos li{color:#26221e}
+html:is([data-tema="claro"],[data-tema="mesclado"]) .btn{border:1px solid #96887a;background:#eaddd0;color:#1a1714}
+html:is([data-tema="claro"],[data-tema="mesclado"]) .status{color:#3e2b19}
+html:is([data-tema="claro"],[data-tema="mesclado"]) input,html:is([data-tema="claro"],[data-tema="mesclado"]) select{border:1px solid #b4aaa0;background:#f6f1ec;color:#1a1714}
+html:is([data-tema="claro"],[data-tema="mesclado"]) .checagem.aviso{color:#bc6e10}
+html:is([data-tema="claro"],[data-tema="mesclado"]) .selo.ok{background:#cfeddb;color:#0a371a}
+html:is([data-tema="claro"],[data-tema="mesclado"]) .selo.bad{background:#edc8c5;color:#330600}
+html:is([data-tema="claro"],[data-tema="mesclado"]) .selo.neutro{background:#ebded1;border:1px solid #cdb394;color:#3b250d}
+html:is([data-tema="claro"],[data-tema="mesclado"]) .tabela tr.dif td{color:#560a00}
+html:is([data-tema="claro"],[data-tema="mesclado"]) .sobre{color:#3c3630}
+html:is([data-tema="claro"],[data-tema="mesclado"]) footer{border-top:1px solid #d2ccc6;color:#5f554b}
+html:is([data-tema="claro"],[data-tema="mesclado"]) .fotos-lista img,html:is([data-tema="claro"],[data-tema="mesclado"]) .fotos-lista .pdf{border:1px solid #c3bbb3;background:#eaddd0;color:#39332d}
+html:is([data-tema="claro"],[data-tema="mesclado"]) .remover{color:#bc6e10}
+html:is([data-tema="claro"],[data-tema="mesclado"]) .status.ok{color:#0f401f}
+html:is([data-tema="claro"],[data-tema="mesclado"]) .status.aviso{color:#bc6e10}
+html:is([data-tema="claro"],[data-tema="mesclado"]) .fiscalize-subnav__links a.destaque[aria-current="page"]{color:#f5eee8}
+html:is([data-tema="claro"],[data-tema="mesclado"]) .fotos-lista li span.ok{color:#0f401f}
+html:is([data-tema="claro"],[data-tema="mesclado"]) .resumo div{background:#f6f1ec}
+html:is([data-tema="claro"],[data-tema="mesclado"]) .popup{background:rgba(246,241,236,0.75)}
+html:is([data-tema="claro"],[data-tema="mesclado"]) .popup-caixa.vermelho{background:#edc8c5;color:#330600}
+html:is([data-tema="claro"],[data-tema="mesclado"]) .popup-caixa.amarelo{background:#f3e3c5;border-color:#bf840d;color:#4c3600}
+html:is([data-tema="claro"],[data-tema="mesclado"]) .popup-caixa.amarelo #forcar{border-color:#bf840d}
+/* === FIM TEMA CLARO === */

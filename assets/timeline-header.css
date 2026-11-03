@@ -162,3 +162,20 @@
 .fiscalize-subnav__links a:hover{background:#222}
 .fiscalize-subnav__links a[aria-current="page"]{background:#f4771c;color:#16100b}
 @media(max-width:560px){.fiscalize-subnav__in{padding:10px 16px}.fiscalize-subnav__links a{font-size:13px;padding:6px 8px}}
+
+/* === TEMA CLARO (gerado) === */
+html:is([data-tema="claro"],[data-tema="mesclado"]) .timeline-sitebar{background:#f6f1ec;color:#1e1710;border-bottom:1px solid #e9d8cd}
+html:is([data-tema="claro"],[data-tema="mesclado"]) .timeline-sitebar__masthead{border-bottom:1px solid #e9d8cd}
+html:is([data-tema="claro"],[data-tema="mesclado"]) .timeline-sitebar__brand{color:#1e1710}
+html:is([data-tema="claro"],[data-tema="mesclado"]) .timeline-sitebar__brand:hover,html:is([data-tema="claro"],[data-tema="mesclado"]) .timeline-sitebar__brand:focus-visible{color:#1e1710}
+html:is([data-tema="claro"],[data-tema="mesclado"]) .timeline-sitebar__return{border:1px solid #dbcec5;background:#f3e8e4;color:#bf650d}
+html:is([data-tema="claro"],[data-tema="mesclado"]) .timeline-sitebar__navigation{border-top:1px solid #e9d8cd}
+html:is([data-tema="claro"],[data-tema="mesclado"]) .timeline-sitebar__links a{color:#4a403a}
+html:is([data-tema="claro"],[data-tema="mesclado"]) .timeline-sitebar__links a:hover,html:is([data-tema="claro"],[data-tema="mesclado"]) .timeline-sitebar__links a:focus-visible{color:#bf650d}
+html:is([data-tema="claro"],[data-tema="mesclado"]) .timeline-sitebar__links a[aria-current="page"]{color:#1a1714}
+html:is([data-tema="claro"],[data-tema="mesclado"]) .timeline-sitebar a:focus-visible{outline:2px solid #bf650d}
+html:is([data-tema="claro"],[data-tema="mesclado"]) .fiscalize-subnav{background:#f4eee8;border-bottom:1px solid #dad5d0}
+html:is([data-tema="claro"],[data-tema="mesclado"]) .fiscalize-subnav__brand{color:#1a1714}
+html:is([data-tema="claro"],[data-tema="mesclado"]) .fiscalize-subnav__links a{color:#26221e}
+html:is([data-tema="claro"],[data-tema="mesclado"]) .fiscalize-subnav__links a:hover{background:#eaddd0}
+/* === FIM TEMA CLARO === */

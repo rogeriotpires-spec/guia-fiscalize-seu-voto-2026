@@ -13,3 +13,14 @@
 .btn:disabled{cursor:wait;opacity:.65}
 @media(max-width:480px){.metricas-lista{gap:4px 14px}.metrica{font-size:11px;gap:5px}.metrica dd{font-size:12px}}
 @media print{.metricas,#ficha-status{display:none!important}}
+
+/* === TEMA CLARO (gerado) === */
+html:is([data-tema="claro"],[data-tema="mesclado"]) .metricas{color:#72665a}
+html:is([data-tema="claro"],[data-tema="mesclado"]) .metrica dt{color:#72665a}
+html:is([data-tema="claro"],[data-tema="mesclado"]) .metrica dd{color:#4a423a}
+html:is([data-tema="claro"],[data-tema="mesclado"]) .metricas-ajuda summary{color:#72665a}
+html:is([data-tema="claro"],[data-tema="mesclado"]) .metricas-ajuda summary:hover{color:#352f29}
+html:is([data-tema="claro"],[data-tema="mesclado"]) .metricas-ajuda summary:focus-visible{outline:1px solid #5f554b}
+html:is([data-tema="claro"],[data-tema="mesclado"]) .metricas-nota{color:#72665a}
+html:is([data-tema="claro"],[data-tema="mesclado"]) .metrica dd.indisponivel{color:#72665a}
+/* === FIM TEMA CLARO === */
