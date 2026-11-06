@@ -2,7 +2,7 @@ name: locais-votacao
 on:
   push:
     branches: [censo]
-    paths: ['locais/alvo.json']
+    paths: ['locais/**']
 permissions:
   contents: write
 jobs:
