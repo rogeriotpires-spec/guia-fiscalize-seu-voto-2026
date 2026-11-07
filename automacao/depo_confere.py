@@ -11,9 +11,10 @@ import requests
 from PIL import Image, ImageOps, ImageFilter
 import pytesseract
 
-URL = os.environ.get('PONTE_URL', '')
-TOKEN = os.environ.get('PONTE_TOKEN', '')
 RAIZ = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+_CFG = os.path.join(RAIZ, 'automacao', 'config.json')
+URL = os.environ.get('PONTE_URL') or (json.load(open(_CFG)).get('ponte_url', '') if os.path.exists(_CFG) else '')
+TOKEN = os.environ.get('PONTE_TOKEN', '')
 S = requests.Session()
 
 
