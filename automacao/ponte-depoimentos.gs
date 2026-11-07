@@ -40,7 +40,7 @@ function depoPlanilha_() {
   const sh = ss.getSheets()[0]; sh.setName('Depoimentos');
   sh.appendRow(DEPO_COLS); sh.setFrozenRows(1); sh.getRange(1, 1, 1, DEPO_COLS.length).setFontWeight('bold');
   sh.getRange(2, DEPO_COLS.indexOf('publicar') + 1, 500, 1).insertCheckboxes();
-  sh.getRange(2, DEPO_COLS.indexOf('status') + 1, 500, 1).setDataValidation(SpreadsheetApp.newDataValidation().requireValueInList(['pendente', 'conferido', 'recusado']).build());
+  sh.getRange(2, DEPO_COLS.indexOf('status') + 1, 500, 1).setDataValidation(SpreadsheetApp.newDataValidation().requireValueInList(['pendente', 'lido', 'conferido', 'recusado']).build());
   p.setProperty('PLANILHA_DEPO', ss.getId());
   return ss;
 }
@@ -158,7 +158,7 @@ function depoPendentes_() {
   const c = (n) => DEPO_COLS.indexOf(n);
   const out = [];
   v.forEach((r, i) => {
-    if (!r[0] || r[c('status')] !== 'pendente' || !r[c('titulo_id')] || r[c('titulo_id')] === 'apagado') return;
+    if (!r[0] || r[c('status')] !== 'pendente' || !r[c('titulo_id')] || r[c('titulo_id')] === 'apagado') return;   // 'lido' já foi conferido pelo robô
     out.push({ id: r[0], linha: i + 2, uf: r[c('uf')], cod: r[c('cod_mun')], municipio: r[c('municipio')], zona_secao: r[c('zona_secao')], titulo_id: r[c('titulo_id')], obs: r[c('obs')] });
   });
   return { pendentes: out };
@@ -179,15 +179,15 @@ function depoTitulo_(id) {
 function depoMarcar_(b) {
   const sh = depoPlanilha_().getSheetByName('Depoimentos');
   const c = (n) => DEPO_COLS.indexOf(n);
-  const status = ['pendente', 'conferido', 'recusado'].indexOf(String(b.status)) >= 0 ? String(b.status) : 'pendente';
+  const status = ['pendente', 'lido', 'conferido', 'recusado'].indexOf(String(b.status)) >= 0 ? String(b.status) : 'pendente';
   const v = sh.getRange(2, 1, Math.max(1, sh.getLastRow() - 1), 1).getValues();
   for (let i = 0; i < v.length; i++) {
     if (String(v[i][0]) !== String(b.id)) continue;
     const lin = i + 2;
     if (b.zona_secao) sh.getRange(lin, c('zona_secao') + 1).setValue(depoLimpa_(b.zona_secao, 12));
     sh.getRange(lin, c('obs') + 1).setValue(depoLimpa_(b.obs, 300));
-    if (status !== 'pendente') {
-      sh.getRange(lin, c('status') + 1).setValue(status);
+    sh.getRange(lin, c('status') + 1).setValue(status);
+    if (status === 'conferido' || status === 'recusado') {
       sh.getRange(lin, c('conferido_em') + 1).setValue(new Date());
       const tid = String(sh.getRange(lin, c('titulo_id') + 1).getValue());
       if (tid && tid !== 'apagado') {

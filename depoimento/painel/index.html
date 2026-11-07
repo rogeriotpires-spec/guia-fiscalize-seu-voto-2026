@@ -13,7 +13,7 @@
 .pn .card h3{margin:0 0 4px;font-size:20px}
 .pn .meta{color:#cfc9c3;font-size:14px;line-height:1.6}
 .pn .tag{display:inline-block;padding:3px 10px;border-radius:999px;font-size:12px;font-weight:800;letter-spacing:1px;text-transform:uppercase}
-.pn .tag.pendente{background:#4a3a14;color:#f2c76b}.pn .tag.conferido{background:#12301e;color:#9fe6b8}.pn .tag.recusado{background:#3a1512;color:#ffb4a8}
+.pn .tag.pendente{background:#4a3a14;color:#f2c76b}.pn .tag.lido{background:#1b3250;color:#9fc8ff}.pn .tag.conferido{background:#12301e;color:#9fe6b8}.pn .tag.recusado{background:#3a1512;color:#ffb4a8}
 .pn iframe{width:100%;aspect-ratio:9/14;max-height:420px;border:0;border-radius:10px;background:#000}
 .pn .titulo{max-width:100%;max-height:360px;border-radius:10px;display:block;margin-top:8px}
 .pn .acoes{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
@@ -47,7 +47,8 @@
 
   <section id="lista-area" hidden>
     <div class="filtros">
-      <button class="btn on" data-f="pendente" type="button">Pendentes</button>
+      <button class="btn on" data-f="lido" type="button">Lidos pelo robô</button>
+      <button class="btn" data-f="pendente" type="button">Pendentes</button>
       <button class="btn" data-f="conferido" type="button">Conferidos</button>
       <button class="btn" data-f="recusado" type="button">Recusados</button>
       <button class="btn" data-f="" type="button">Todos</button>
@@ -63,7 +64,7 @@
   'use strict';
   const PONTE = 'https://script.google.com/macros/s/AKfycbwpl594yIsZJIdtunWGalH4uxJVCvwVKOpdX9eakG1YdV-uBkOHOIf3M2xhTFE_zAndpQ/exec';
   const $ = (id) => document.getElementById(id);
-  let sessao = '', linhas = [], filtro = 'pendente';
+  let sessao = '', linhas = [], filtro = 'lido';
   try { sessao = sessionStorage.getItem('depo_sessao') || ''; } catch (e) { /* sem storage */ }
   function status(t, cls) { const s = $('status'); s.textContent = t; s.className = 'status ' + (cls || ''); }
   async function post(corpo) {
@@ -109,8 +110,8 @@
   const fmt = (iso) => iso ? new Date(iso).toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' }) : '';
   function render() {
     const l = linhas.filter(x => !filtro || x.status === filtro);
-    const n = { pendente: 0, conferido: 0, recusado: 0 }; linhas.forEach(x => { n[x.status] = (n[x.status] || 0) + 1; });
-    $('resumo').textContent = `${linhas.length} depoimentos: ${n.pendente} pendentes, ${n.conferido} conferidos, ${n.recusado} recusados. Mostrando ${l.length}.`;
+    const n = { lido: 0, pendente: 0, conferido: 0, recusado: 0 }; linhas.forEach(x => { n[x.status] = (n[x.status] || 0) + 1; });
+    $('resumo').textContent = `${linhas.length} depoimentos: ${n.lido} lidos pelo robô (aguardam você), ${n.pendente} pendentes, ${n.conferido} conferidos, ${n.recusado} recusados. Mostrando ${l.length}.`;
     const box = $('lista'); box.textContent = '';
     l.forEach(x => {
       const c = document.createElement('div'); c.className = 'card';
@@ -142,7 +143,7 @@
     const corpo = { acao: 'adm_marcar', id: x.id, status: st, obs };
     if (typeof publicar === 'boolean') corpo.publicar = publicar;
     const d = await post(corpo);
-    if (d.ok) { x.status = st; x.obs = obs; if (typeof publicar === 'boolean') x.publicar = publicar; if (st !== 'pendente') { x.titulo_id = 'apagado'; x.titulo_apagado_em = new Date().toISOString(); x.conferido_em = x.conferido_em || x.titulo_apagado_em; } render(); }
+    if (d.ok) { x.status = st; x.obs = obs; if (typeof publicar === 'boolean') x.publicar = publicar; if (st === 'conferido' || st === 'recusado') { x.titulo_id = 'apagado'; x.titulo_apagado_em = new Date().toISOString(); x.conferido_em = x.conferido_em || x.titulo_apagado_em; } render(); }
   }
   async function apagar(x) { const d = await post({ acao: 'adm_apagar', id: x.id }); if (d.ok) { linhas = linhas.filter(y => y.id !== x.id); render(); } }
   if (sessao) { $('entrar').hidden = true; $('lista-area').hidden = false; carregar(); }

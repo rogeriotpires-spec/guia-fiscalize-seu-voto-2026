@@ -2,7 +2,7 @@
 lista das seções zeradas e marca a linha na planilha. A ponte apaga a foto na hora.
 
 Resultado por linha:
-  conferido  zona e seção lidas e estão entre as seções zeradas do município escolhido
+  lido       zona e seção lidas, documento reconhecido e seção entre as zeradas; a foto fica até o Rogerio marcar conferido
   recusado   zona e seção lidas, mas não estão na lista (ou são de outro município)
   pendente   OCR não leu com segurança; fica para conferência manual (obs explica)
 """
@@ -57,6 +57,15 @@ def variantes(img):
     yield g.rotate(-90, expand=True)
 
 
+MARCAS = ('JUSTICA ELEITORAL', 'TITULO DE ELEITOR', 'TITULO ELEITORAL', 'E-TITULO', 'ETITULO', 'COMPROVANTE DE VOTACAO', 'INSCRICAO', 'TRIBUNAL SUPERIOR ELEITORAL', 'TRIBUNAL REGIONAL ELEITORAL', 'ELEITOR')
+
+
+def parece_documento(txt):
+    t = txt.upper().replace('Ç', 'C').replace('Ã', 'A').replace('Õ', 'O').replace('Í', 'I').replace('É', 'E')
+    t = re.sub(r'[^A-Z0-9 -]', ' ', t)
+    return any(m in t for m in MARCAS)
+
+
 def ler_zona_secao(img):
     """Procura 'Zona NNNN' e 'Seção NNNN' no texto do OCR. Devolve (zona, secao, texto) ou (None, None, texto)."""
     melhor = (None, None, '')
@@ -90,7 +99,7 @@ def main():
     lista = secoes_por_mun()
     pend = get(acao='depo_pendentes').get('pendentes', [])
     log(f'{len(pend)} depoimentos pendentes')
-    res = {'conferido': 0, 'recusado': 0, 'pendente': 0}
+    res = {'lido': 0, 'recusado': 0, 'pendente': 0}
     for p in pend:
         try:
             a = get(acao='depo_titulo', id=p['titulo_id'])
@@ -111,7 +120,10 @@ def main():
             else:
                 status, obs = 'pendente', 'OCR não leu zona/seção. Conferir à mão.'
         elif (zona, secao) in ok_mun:
-            status, obs = 'conferido', f'OCR: zona {zona}, seção {secao}. Está entre as seções zeradas de {p["municipio"]}.'
+            if parece_documento(txt):
+                status, obs = 'lido', f'OCR: zona {zona}, seção {secao}, documento reconhecido. Está entre as seções zeradas de {p["municipio"]}. Confira o vídeo e a foto e marque conferido.'
+            else:
+                status, obs = 'pendente', f'OCR: zona {zona}, seção {secao} batem, mas a imagem não parece título nem comprovante. Conferir à mão.'
         else:
             # pode ser seção do mesmo município sem zero, ou de outro município
             outro = [k for k, v in lista.items() if (zona, secao) in v and k[0] == p['uf']]
@@ -126,7 +138,7 @@ def main():
         res[status] += 1
     log('resumo', res)
     with open(os.environ.get('GITHUB_STEP_SUMMARY', '/dev/null'), 'a') as f:
-        f.write(f"Depoimentos: {res['conferido']} conferidos, {res['recusado']} recusados, {res['pendente']} ficaram para conferência manual.\n")
+        f.write(f"Depoimentos: {res['lido']} lidos (aguardam sua conferência), {res['recusado']} recusados, {res['pendente']} ficaram para conferência manual.\n")
 
 
 if __name__ == '__main__':
