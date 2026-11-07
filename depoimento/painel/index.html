@@ -119,7 +119,7 @@
       const h = document.createElement('h3'); h.textContent = `${x.municipio} (${x.uf})` + (x.zona_secao ? ` · zona/seção ${x.zona_secao}` : ''); esq.appendChild(h);
       const tag = document.createElement('span'); tag.className = 'tag ' + x.status; tag.textContent = x.status; esq.appendChild(tag);
       const m = document.createElement('p'); m.className = 'meta';
-      m.textContent = `${x.nome}${x.whatsapp ? ' · WhatsApp ' + x.whatsapp : ''} · recebido ${fmt(x.recebido)} · ${x.duracao_s || '?'} s, ${x.tamanho_mb} MB` + (x.conferido_em ? ` · conferido ${fmt(x.conferido_em)}` : '') + (x.titulo_apagado_em ? ` · título apagado ${fmt(x.titulo_apagado_em)}` : ' · título ainda guardado');
+      m.textContent = `${x.nome}${x.whatsapp ? ' · WhatsApp ' + x.whatsapp : ''} · recebido ${fmt(x.recebido)} · ${x.duracao_s || '?'} s, ${x.tamanho_mb} MB` + (x.conferido_em ? ` · conferido ${fmt(x.conferido_em)}` : '') + (x.titulo_apagado_em ? ` · documento apagado ${fmt(x.titulo_apagado_em)}` : ' · documento guardado');
       esq.appendChild(m);
       const obs = document.createElement('textarea'); obs.placeholder = 'Observação'; obs.value = x.obs || ''; esq.appendChild(obs);
       const ac = document.createElement('div'); ac.className = 'acoes';
@@ -132,10 +132,10 @@
       const dir = document.createElement('div');
       if (x.video_id) { const f = document.createElement('iframe'); f.src = 'https://drive.google.com/file/d/' + x.video_id + '/preview'; f.allow = 'autoplay'; dir.appendChild(f); }
       if (x.titulo_id && x.titulo_id !== 'apagado') {
-        const b = document.createElement('button'); b.type = 'button'; b.className = 'btn'; b.textContent = 'Ver foto do título'; b.style.marginTop = '8px';
+        const b = document.createElement('button'); b.type = 'button'; b.className = 'btn'; b.textContent = 'Ver documento'; b.style.marginTop = '8px';
         b.addEventListener('click', async () => { b.disabled = true; try { const d = await post({ acao: 'adm_titulo', id: x.titulo_id }); const img = document.createElement('img'); img.className = 'titulo'; img.src = 'data:' + (d.mime || 'image/jpeg') + ';base64,' + d.b64; dir.appendChild(img); b.remove(); } catch (e) { b.disabled = false; } });
         dir.appendChild(b);
-      } else { const p = document.createElement('p'); p.className = 'meta'; p.textContent = 'Foto do título já apagada.'; dir.appendChild(p); }
+      } else { const p = document.createElement('p'); p.className = 'meta'; p.textContent = 'Documento apagado.'; dir.appendChild(p); }
       c.appendChild(esq); c.appendChild(dir); box.appendChild(c);
     });
   }
@@ -143,7 +143,7 @@
     const corpo = { acao: 'adm_marcar', id: x.id, status: st, obs };
     if (typeof publicar === 'boolean') corpo.publicar = publicar;
     const d = await post(corpo);
-    if (d.ok) { x.status = st; x.obs = obs; if (typeof publicar === 'boolean') x.publicar = publicar; if (st === 'conferido' || st === 'recusado') { x.titulo_id = 'apagado'; x.titulo_apagado_em = new Date().toISOString(); x.conferido_em = x.conferido_em || x.titulo_apagado_em; } render(); }
+    if (d.ok) { x.status = st; x.obs = obs; if (typeof publicar === 'boolean') x.publicar = publicar; if (st === 'recusado') { x.titulo_id = 'apagado'; x.titulo_apagado_em = new Date().toISOString(); x.conferido_em = x.conferido_em || x.titulo_apagado_em; } render(); }
   }
   async function apagar(x) { const d = await post({ acao: 'adm_apagar', id: x.id }); if (d.ok) { linhas = linhas.filter(y => y.id !== x.id); render(); } }
   if (sessao) { $('entrar').hidden = true; $('lista-area').hidden = false; carregar(); }

@@ -88,7 +88,7 @@ function depoFim_(b) {
     const base = uf + '-' + mun.replace(/[^\wÀ-ÿ]+/g, '_').slice(0, 30) + (sec ? '-zs' + sec : '') + '-' + b.envio;
     const video = depoPasta_('videos').createFile(Utilities.newBlob(bytes, tipo, base + '.' + ext));
     const titPdf = String(b.titulo_tipo || '') === 'application/pdf';
-    const titulo = depoPasta_('titulos (restrito, apagar após conferência)').createFile(Utilities.newBlob(tit, titPdf ? 'application/pdf' : 'image/jpeg', base + '-titulo.' + (titPdf ? 'pdf' : 'jpg')));
+    const titulo = depoPasta_('documentos (restrito, nunca publicar)').createFile(Utilities.newBlob(tit, titPdf ? 'application/pdf' : 'image/jpeg', base + '-titulo.' + (titPdf ? 'pdf' : 'jpg')));
     blobs.forEach(f => f.setTrashed(true));
     const sh = depoPlanilha_().getSheetByName('Depoimentos');
     const id = b.envio;
@@ -104,14 +104,15 @@ function depoFim_(b) {
 /** Contador público (sem dados pessoais): quantas fotos de título foram recebidas, conferidas e apagadas. */
 function depoContador_() {
   const sh = depoPlanilha_().getSheetByName('Depoimentos');
-  const out = { recebidos: 0, conferidos: 0, titulos_apagados: 0, titulos_guardados: 0, atualizado: new Date().toISOString() };
+  const out = { recebidos: 0, conferidos: 0, recusados: 0, titulos_apagados: 0, titulos_guardados: 0, atualizado: new Date().toISOString() };
   if (!sh || sh.getLastRow() < 2) return out;
   const v = sh.getRange(2, 1, sh.getLastRow() - 1, DEPO_COLS.length).getValues();
   const cS = DEPO_COLS.indexOf('status'), cT = DEPO_COLS.indexOf('titulo_id'), cA = DEPO_COLS.indexOf('titulo_apagado_em');
   for (const r of v) {
     if (!r[0]) continue;
     out.recebidos++;
-    if (r[cS] === 'conferido' || r[cS] === 'recusado') out.conferidos++;
+    if (r[cS] === 'conferido') out.conferidos++;
+    if (r[cS] === 'recusado') out.recusados++;
     if (r[cA]) out.titulos_apagados++; else if (r[cT]) out.titulos_guardados++;
   }
   return out;
@@ -128,7 +129,7 @@ function apagarTitulosConferidos() {
   let apagados = 0;
   for (let i = 0; i < n; i++) {
     const r = v[i];
-    if (!(r[cS] === 'conferido' || r[cS] === 'recusado') || !r[cT] || r[cA]) continue;
+    if (r[cS] !== 'recusado' || !r[cT] || r[cA]) continue;   // só recusados
     try {
       const f = DriveApp.getFileById(String(r[cT]));
       f.setTrashed(true);
@@ -167,7 +168,7 @@ function depoPendentes_() {
 /** Entrega a foto do título ao robô (só da pasta de títulos). */
 function depoTitulo_(id) {
   const f = DriveApp.getFileById(id);
-  const pasta = depoPasta_('titulos (restrito, apagar após conferência)').getId();
+  const pasta = depoPasta_('documentos (restrito, nunca publicar)').getId();
   let ok = false; const it = f.getParents();
   while (it.hasNext()) if (it.next().getId() === pasta) ok = true;
   if (!ok) return { erro: 'fora da pasta de titulos' };
@@ -175,7 +176,7 @@ function depoTitulo_(id) {
   return { mime: b.getContentType(), b64: Utilities.base64Encode(b.getBytes()) };
 }
 
-/** Resultado da conferência: {id, status, obs, zona_secao}. Se conferido ou recusado, apaga a foto na hora. */
+/** Resultado da conferência: {id, status, obs, zona_secao}. Recusado apaga o documento; conferido guarda em pasta restrita. */
 function depoMarcar_(b) {
   const sh = depoPlanilha_().getSheetByName('Depoimentos');
   const c = (n) => DEPO_COLS.indexOf(n);
@@ -187,8 +188,8 @@ function depoMarcar_(b) {
     if (b.zona_secao) sh.getRange(lin, c('zona_secao') + 1).setValue(depoLimpa_(b.zona_secao, 12));
     sh.getRange(lin, c('obs') + 1).setValue(depoLimpa_(b.obs, 300));
     sh.getRange(lin, c('status') + 1).setValue(status);
-    if (status === 'conferido' || status === 'recusado') {
-      sh.getRange(lin, c('conferido_em') + 1).setValue(new Date());
+    if (status === 'conferido' || status === 'recusado') sh.getRange(lin, c('conferido_em') + 1).setValue(new Date());
+    if (status === 'recusado') {   // conferidos ficam guardados como prova; recusados são apagados
       const tid = String(sh.getRange(lin, c('titulo_id') + 1).getValue());
       if (tid && tid !== 'apagado') {
         try { DriveApp.getFileById(tid).setTrashed(true); try { Drive.Files.remove(tid); } catch (e) { /* lixeira */ } } catch (e) { /* já não existe */ }

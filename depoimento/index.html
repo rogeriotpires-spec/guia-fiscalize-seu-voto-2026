@@ -48,7 +48,7 @@
   <h1>VOCÊ VOTOU NO <span>FLÁVIO</span>?</h1>
   <p class="intro">Em 135 seções eleitorais de 20 estados, o TSE diz que Flávio Bolsonaro teve zero votos no 2º turno. Nem um. Se você votou nele numa dessas seções, o seu voto não existe para o TSE. Eu quero ouvir você.</p>
   <div class="numeros"><div><b>135</b>seções com zero</div><div><b>85</b>municípios</div><div><b>118</b>votos do 1º turno que sumiram</div></div>
-  <p class="muted pequeno" id="contador" hidden>Transparência: <b id="c-rec">0</b> depoimentos recebidos, <b id="c-conf">0</b> conferidos, <b id="c-apag">0</b> fotos de título já apagadas, <b id="c-guard">0</b> aguardando conferência.</p>
+  <p class="muted pequeno" id="contador" hidden>Transparência: <b id="c-rec">0</b> depoimentos recebidos, <b id="c-conf">0</b> conferidos, <b id="c-rec2">0</b> recusados (documento apagado), <b id="c-guard">0</b> documentos guardados em pasta restrita.</p>
 
   <form id="form" class="painel" novalidate aria-labelledby="t-local">
     <h2 id="t-local">1. Onde você votou?</h2>
@@ -75,7 +75,7 @@
     <div id="status-video" class="status" role="status" aria-live="polite"></div>
 
     <h2 style="margin-top:26px">3. Mostre que você vota ali</h2>
-    <p class="muted">Vale qualquer um destes: o <b>comprovante de votação</b> que a urna imprimiu no 2º turno (o melhor), o título de eleitor de papel, o PDF do e-Título (no app, em "Mais opções", escolha "Baixar título" ou "Compartilhar"; o e-Título não deixa tirar print) ou uma foto da tela do e-Título tirada com outro celular. Pode cobrir o nome com o dedo: eu só preciso ver a zona e a seção. O arquivo é conferido e apagado. Nunca é publicado.</p>
+    <p class="muted">Vale qualquer um destes: o <b>comprovante de votação</b> que a urna imprimiu no 2º turno (o melhor), o título de eleitor de papel, o PDF do e-Título (no app, em "Mais opções", escolha "Baixar título" ou "Compartilhar"; o e-Título não deixa tirar print) ou uma foto da tela do e-Título tirada com outro celular. Pode cobrir o nome com o dedo: eu só preciso ver a zona e a seção. O arquivo fica guardado numa pasta restrita, como prova do depoimento. Nunca é publicado e é apagado se você pedir.</p>
     <label class="upload grande" for="titulo">
       <input id="titulo" type="file" accept="image/*,application/pdf">
       <span class="btn gigante">📷 Comprovante, título ou PDF do e-Título</span>
@@ -89,7 +89,7 @@
       <label>WhatsApp (opcional)<input id="whats" inputmode="tel" maxlength="30" autocomplete="tel" placeholder="(DDD) número"></label>
     </div>
     <p class="muted pequeno">O WhatsApp só serve para eu falar com você se precisar. Nunca aparece no site.</p>
-    <label class="aceite"><input type="checkbox" id="aceite" required> Autorizo a Revista Timeline a publicar o meu depoimento em vídeo, com meu nome e minha cidade. Sei que a foto do meu título será apagada depois da conferência.</label>
+    <label class="aceite"><input type="checkbox" id="aceite" required> Autorizo a Revista Timeline a publicar o meu depoimento em vídeo, com meu nome e minha cidade, e a guardar o documento enviado em pasta restrita, sem publicá-lo.</label>
     <input id="site" name="site" tabindex="-1" autocomplete="off" class="oculto" aria-hidden="true">
     <button class="btn primary gigante" id="enviar" type="submit" style="margin-top:18px">Enviar depoimento</button>
     <div class="barra" id="barra" hidden><i id="barra-i"></i></div>
@@ -98,7 +98,7 @@
 
   <section class="painel sucesso" id="sucesso" hidden>
     <div class="selo ok">✓ Depoimento recebido</div>
-    <p>Obrigado. Eu mesmo vou conferir a zona e a seção, apagar a foto do título e entrar em contato se precisar. Um voto só já derruba o zero.</p>
+    <p>Obrigado. Eu mesmo vou conferir a zona e a seção e entrar em contato se precisar. Um voto só já derruba o zero.</p>
     <div class="actions">
       <button class="btn primary" id="compartilhar" type="button">Compartilhar com quem mora aí</button>
       <a class="btn" href="./">Enviar outro depoimento</a>
@@ -108,6 +108,6 @@
   <p class="muted pequeno">Internet fraca? Grave o vídeo curto, em 720p, e tente de novo com sinal melhor. O envio recomeça do zero se cair.</p>
 </main>
 <footer>REVISTA TIMELINE · FISCALIZE SEU VOTO 2026<br>Conferência nacional dos boletins de urna por Rogerio Pires<br><a href="https://www.instagram.com/rogerrio/" target="_blank" rel="noopener noreferrer">Instagram @rogerrio</a> · <a href="https://x.com/rogerrioX" target="_blank" rel="noopener noreferrer">X @rogerrioX</a></footer>
-<script src="../assets/depoimento.js?v=3"></script>
+<script src="../assets/depoimento.js?v=4"></script>
 </body>
 </html>

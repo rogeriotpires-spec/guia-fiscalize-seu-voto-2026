@@ -16,7 +16,7 @@
   // ---------- contador público de transparência ----------
   fetch(PONTE + '?acao=depo_contador', { redirect: 'follow' }).then(r => r.json()).then(c => {
     if (!c || c.erro) return;
-    $('c-rec').textContent = c.recebidos; $('c-conf').textContent = c.conferidos; $('c-apag').textContent = c.titulos_apagados; $('c-guard').textContent = c.titulos_guardados;
+    $('c-rec').textContent = c.recebidos; $('c-conf').textContent = c.conferidos; $('c-rec2').textContent = c.recusados || 0; $('c-guard').textContent = c.titulos_guardados;
     $('contador').hidden = false;
   }).catch(() => {});
 
