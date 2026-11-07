@@ -64,16 +64,28 @@
   // ---------- foto do título (comprimida no aparelho) ----------
   $('titulo').addEventListener('change', async () => {
     const f = $('titulo').files[0]; if (!f) return;
+    foto = null; $('foto-prev').hidden = true;
+    status('Lendo a foto...', '', 'status-foto');
     try {
-      const url = URL.createObjectURL(f); const img = new Image();
-      await new Promise((ok, erro) => { img.onload = ok; img.onerror = erro; img.src = url; });
-      const s = Math.min(1, MAX_LADO_FOTO / Math.max(img.width, img.height));
-      const c = document.createElement('canvas'); c.width = Math.round(img.width * s); c.height = Math.round(img.height * s);
-      c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
+      let bmp;
+      try { bmp = await createImageBitmap(f); }
+      catch (e) {
+        const url = URL.createObjectURL(f); const img = new Image();
+        await new Promise((ok, erro) => { img.onload = ok; img.onerror = erro; img.src = url; });
+        bmp = img;
+      }
+      const w = bmp.width, h = bmp.height;
+      const s = Math.min(1, MAX_LADO_FOTO / Math.max(w, h));
+      const c = document.createElement('canvas'); c.width = Math.round(w * s); c.height = Math.round(h * s);
+      c.getContext('2d').drawImage(bmp, 0, 0, c.width, c.height);
       foto = await new Promise(ok => c.toBlob(ok, 'image/jpeg', 0.82));
+      if (!foto) throw new Error('canvas');
       $('foto-prev').src = c.toDataURL('image/jpeg', 0.6); $('foto-prev').hidden = false;
-      URL.revokeObjectURL(url);
-    } catch (e) { foto = f; }
+      status('Foto pronta (' + (foto.size / 1024).toFixed(0) + ' KB).', 'ok', 'status-foto');
+    } catch (e) {
+      if (/^image\/(jpeg|png|webp)$/.test(f.type) && f.size <= 3 * 1024 * 1024) { foto = f; status('Foto escolhida (' + (f.size / 1024).toFixed(0) + ' KB).', 'ok', 'status-foto'); }
+      else status('Não consegui abrir essa imagem (' + (f.type || 'formato desconhecido') + '). Tire a foto de novo pela câmera ou escolha uma JPG.', 'aviso', 'status-foto');
+    }
   });
 
   // ---------- envio em partes ----------
