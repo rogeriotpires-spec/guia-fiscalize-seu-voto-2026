@@ -83,7 +83,7 @@
       if (d.erro === 'excesso') { status('Muitas tentativas. Espere 15 minutos.', 'aviso'); $('pedir').disabled = false; return; }
       $('passo2').hidden = false; status('Código enviado. Confira a caixa de entrada e o spam.', 'ok'); $('codigo').focus();
     }
-    catch (e) { status('Não consegui falar com a ponte. Tente de novo.', 'aviso'); }
+    catch (e) { status('A ponte não respondeu em JSON (' + e.message + '). Se for a primeira vez, rode autorizarPainel no Apps Script.', 'aviso'); }
     $('pedir').disabled = false;
   });
   $('confirmar').addEventListener('click', async () => {

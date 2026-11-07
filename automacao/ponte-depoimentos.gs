@@ -289,3 +289,10 @@ function admPost_(body) {
   if (body.acao === 'adm_apagar') return admApagar_(body);
   return { erro: 'acao desconhecida' };
 }
+
+/** Rode UMA vez pelo editor para autorizar o envio de e-mail e o cache: manda um e-mail de teste ao e-mail autorizado. */
+function autorizarPainel() {
+  CacheService.getScriptCache().put('adm_teste', '1', 60);
+  MailApp.sendEmail({ to: ADM_EMAIL, subject: 'Fiscalize – painel autorizado', htmlBody: '<p>O painel de depoimentos está autorizado a enviar códigos para este e-mail.</p>' });
+  Logger.log('ok: e-mail de teste enviado para ' + ADM_EMAIL);
+}
