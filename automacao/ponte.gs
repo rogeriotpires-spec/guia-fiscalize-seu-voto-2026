@@ -167,6 +167,8 @@ function doGet(e) {
   if (q.acao === 'depo_contador') return json_(depoContador_());
   if (!autorizado_(q.t)) return json_({ erro: 'nao autorizado' });
   if (q.acao === 'versao') return json_(versao_());
+  if (q.acao === 'depo_pendentes') return json_(depoPendentes_());
+  if (q.acao === 'depo_titulo') return json_(depoTitulo_(q.id));
   if (q.acao === 'respostas') return json_(respostas_());
   if (q.acao === 'arquivo') return json_(arquivo_(q.id));
   if (q.acao === 'marcacoes') return json_(marcacoes_());
@@ -276,6 +278,7 @@ function doPost(e) {
   if (body.acao === 'depo_parte') return json_(depoParte_(body));
   if (body.acao === 'depo_fim') return json_(depoFim_(body));
   if (!autorizado_(body.t)) return json_({ erro: 'nao autorizado' });
+  if (body.acao === 'depo_marcar') return json_(depoMarcar_(body));
   const ed = body.editaveis || {}, cx = body.caixas || {};
   PropertiesService.getScriptProperties().setProperty('EDITAVEIS', JSON.stringify(ed));
   const ss = planilha_();

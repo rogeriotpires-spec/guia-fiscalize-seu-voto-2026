@@ -146,3 +146,56 @@ function instalarGatilhoApagar() {
   ScriptApp.newTrigger('apagarTitulosConferidos').timeBased().everyHours(1).create();
   Logger.log('gatilho instalado: apagarTitulosConferidos a cada hora');
 }
+
+/* ---------- conferência automática (chamadas do robô, com senha) ---------- */
+
+/** Linhas pendentes: só o necessário para o robô conferir (sem nome nem WhatsApp). */
+function depoPendentes_() {
+  const sh = depoPlanilha_().getSheetByName('Depoimentos');
+  if (!sh || sh.getLastRow() < 2) return { pendentes: [] };
+  const v = sh.getRange(2, 1, sh.getLastRow() - 1, DEPO_COLS.length).getValues();
+  const c = (n) => DEPO_COLS.indexOf(n);
+  const out = [];
+  v.forEach((r, i) => {
+    if (!r[0] || r[c('status')] !== 'pendente' || !r[c('titulo_id')] || r[c('titulo_id')] === 'apagado') return;
+    out.push({ id: r[0], linha: i + 2, uf: r[c('uf')], cod: r[c('cod_mun')], municipio: r[c('municipio')], zona_secao: r[c('zona_secao')], titulo_id: r[c('titulo_id')], obs: r[c('obs')] });
+  });
+  return { pendentes: out };
+}
+
+/** Entrega a foto do título ao robô (só da pasta de títulos). */
+function depoTitulo_(id) {
+  const f = DriveApp.getFileById(id);
+  const pasta = depoPasta_('titulos (restrito, apagar após conferência)').getId();
+  let ok = false; const it = f.getParents();
+  while (it.hasNext()) if (it.next().getId() === pasta) ok = true;
+  if (!ok) return { erro: 'fora da pasta de titulos' };
+  const b = f.getBlob();
+  return { mime: b.getContentType(), b64: Utilities.base64Encode(b.getBytes()) };
+}
+
+/** Resultado da conferência: {id, status, obs, zona_secao}. Se conferido ou recusado, apaga a foto na hora. */
+function depoMarcar_(b) {
+  const sh = depoPlanilha_().getSheetByName('Depoimentos');
+  const c = (n) => DEPO_COLS.indexOf(n);
+  const status = ['pendente', 'conferido', 'recusado'].indexOf(String(b.status)) >= 0 ? String(b.status) : 'pendente';
+  const v = sh.getRange(2, 1, Math.max(1, sh.getLastRow() - 1), 1).getValues();
+  for (let i = 0; i < v.length; i++) {
+    if (String(v[i][0]) !== String(b.id)) continue;
+    const lin = i + 2;
+    if (b.zona_secao) sh.getRange(lin, c('zona_secao') + 1).setValue(depoLimpa_(b.zona_secao, 12));
+    sh.getRange(lin, c('obs') + 1).setValue(depoLimpa_(b.obs, 300));
+    if (status !== 'pendente') {
+      sh.getRange(lin, c('status') + 1).setValue(status);
+      sh.getRange(lin, c('conferido_em') + 1).setValue(new Date());
+      const tid = String(sh.getRange(lin, c('titulo_id') + 1).getValue());
+      if (tid && tid !== 'apagado') {
+        try { DriveApp.getFileById(tid).setTrashed(true); try { Drive.Files.remove(tid); } catch (e) { /* lixeira */ } } catch (e) { /* já não existe */ }
+        sh.getRange(lin, c('titulo_id') + 1).setValue('apagado');
+        sh.getRange(lin, c('titulo_apagado_em') + 1).setValue(new Date());
+      }
+    }
+    return { ok: true, id: b.id, status: status };
+  }
+  return { erro: 'id nao encontrado' };
+}
