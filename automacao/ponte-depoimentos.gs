@@ -207,15 +207,15 @@ const ADM_SESSAO_S = 6 * 60 * 60;              // sessão de 6 horas (limite do 
 function admHash_(s) {
   return Utilities.base64Encode(Utilities.computeDigest(Utilities.DigestAlgorithm.SHA_256, s, Utilities.Charset.UTF_8));
 }
-/** Passo 1: manda um código de 6 dígitos para o e-mail autorizado. Qualquer outro e-mail recebe a mesma resposta, sem enviar nada. */
+/** Passo 1: manda um código de 6 dígitos para o e-mail autorizado. Qualquer outro e-mail é negado na hora. */
 function admCodigo_(b) {
   const email = depoLimpa_(b.email, 120).toLowerCase();
   const cache = CacheService.getScriptCache();
   const chaveTent = 'adm_tent_' + admHash_(email);
   const tent = +(cache.get(chaveTent) || 0);
-  if (tent >= 5) return { ok: true };                       // silencia tentativas em excesso (15 min)
+  if (tent >= 5) return { erro: 'excesso' };               // bloqueia tentativas em excesso (15 min)
   cache.put(chaveTent, String(tent + 1), 15 * 60);
-  if (email !== ADM_EMAIL) return { ok: true };
+  if (email !== ADM_EMAIL) return { erro: 'email' };
   const codigo = String(Math.floor(100000 + Math.random() * 900000));
   cache.put('adm_codigo', admHash_(codigo + email), 10 * 60);
   MailApp.sendEmail({ to: email, subject: 'Fiscalize – código do painel: ' + codigo,
