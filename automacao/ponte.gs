@@ -164,9 +164,9 @@ function autorizado_(t) {
 
 function doGet(e) {
   const q = e.parameter || {};
+  if (q.acao === 'depo_contador') return json_(depoContador_());
   if (!autorizado_(q.t)) return json_({ erro: 'nao autorizado' });
   if (q.acao === 'versao') return json_(versao_());
-  if (q.acao === 'depo_contador') return json_(depoContador_());
   if (q.acao === 'respostas') return json_(respostas_());
   if (q.acao === 'arquivo') return json_(arquivo_(q.id));
   if (q.acao === 'marcacoes') return json_(marcacoes_());
