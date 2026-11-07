@@ -1,0 +1,147 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>Painel de depoimentos | Fiscalize Seu Voto 2026</title>
+<link rel="stylesheet" href="../../assets/timeline-header.css?v=5">
+<link rel="stylesheet" href="../../assets/conferir.css?v=7">
+<style>
+.pn .card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px;margin:14px 0;display:grid;grid-template-columns:1fr 1fr;gap:16px}
+@media(max-width:760px){.pn .card{grid-template-columns:1fr}}
+.pn .card h3{margin:0 0 4px;font-size:20px}
+.pn .meta{color:#cfc9c3;font-size:14px;line-height:1.6}
+.pn .tag{display:inline-block;padding:3px 10px;border-radius:999px;font-size:12px;font-weight:800;letter-spacing:1px;text-transform:uppercase}
+.pn .tag.pendente{background:#4a3a14;color:#f2c76b}.pn .tag.conferido{background:#12301e;color:#9fe6b8}.pn .tag.recusado{background:#3a1512;color:#ffb4a8}
+.pn iframe{width:100%;aspect-ratio:9/14;max-height:420px;border:0;border-radius:10px;background:#000}
+.pn .titulo{max-width:100%;max-height:360px;border-radius:10px;display:block;margin-top:8px}
+.pn .acoes{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+.pn .acoes .btn{padding:10px 12px;font-size:14px}
+.pn .btn.ok{background:#1f6b3a;border-color:#1f6b3a}.pn .btn.bad{background:#7a2a22;border-color:#7a2a22}.pn .btn.del{background:#333;border-color:#777;color:#f2b56b}
+.pn textarea{width:100%;min-height:56px;background:#1b1612;color:#fff;border:1px solid var(--line);border-radius:8px;padding:8px;font:inherit;font-size:14px}
+.pn .filtros{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0}
+.pn .filtros .btn.on{background:var(--orange);border-color:var(--orange);color:#16100b}
+.pn .codigo input{font-size:32px;letter-spacing:8px;text-align:center}
+</style>
+</head>
+<body>
+<script src="https://rogeriotpires-spec.github.io/apuracao-timeline/menu/timeline-menu.js"></script>
+<main class="enviar pn">
+  <p class="eyebrow">ÁREA RESTRITA</p>
+  <h1>PAINEL DE <span>DEPOIMENTOS</span></h1>
+
+  <section class="painel" id="entrar">
+    <h2>Entrar</h2>
+    <p class="muted">Eu mando um código de 6 dígitos para o e-mail autorizado. Vale 10 minutos.</p>
+    <div class="grade duas">
+      <label>E-mail<input id="email" type="email" autocomplete="email"></label>
+    </div>
+    <button class="btn primary" id="pedir" type="button" style="margin-top:12px">Receber o código</button>
+    <div class="codigo" id="passo2" hidden>
+      <label style="margin-top:14px;display:block">Código recebido<input id="codigo" inputmode="numeric" maxlength="6" autocomplete="one-time-code"></label>
+      <button class="btn primary" id="confirmar" type="button" style="margin-top:12px">Entrar</button>
+    </div>
+    <div id="status" class="status" role="status" aria-live="polite"></div>
+  </section>
+
+  <section id="lista-area" hidden>
+    <div class="filtros">
+      <button class="btn on" data-f="pendente" type="button">Pendentes</button>
+      <button class="btn" data-f="conferido" type="button">Conferidos</button>
+      <button class="btn" data-f="recusado" type="button">Recusados</button>
+      <button class="btn" data-f="" type="button">Todos</button>
+      <button class="btn" id="recarregar" type="button">↻ Atualizar</button>
+      <button class="btn" id="sair" type="button">Sair</button>
+    </div>
+    <p class="muted" id="resumo"></p>
+    <div id="lista"></div>
+  </section>
+</main>
+<script>
+(function () {
+  'use strict';
+  const PONTE = 'https://script.google.com/macros/s/AKfycbwpl594yIsZJIdtunWGalH4uxJVCvwVKOpdX9eakG1YdV-uBkOHOIf3M2xhTFE_zAndpQ/exec';
+  const $ = (id) => document.getElementById(id);
+  let sessao = '', linhas = [], filtro = 'pendente';
+  try { sessao = sessionStorage.getItem('depo_sessao') || ''; } catch (e) { /* sem storage */ }
+  function status(t, cls) { const s = $('status'); s.textContent = t; s.className = 'status ' + (cls || ''); }
+  async function post(corpo) {
+    corpo.s = sessao;
+    const r = await fetch(PONTE, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(corpo), redirect: 'follow' });
+    const d = await r.json();
+    if (d && d.erro === 'sessao') { sair(); throw new Error('sessao'); }
+    return d;
+  }
+  function sair() { sessao = ''; try { sessionStorage.removeItem('depo_sessao'); } catch (e) { /* */ } $('lista-area').hidden = true; $('entrar').hidden = false; status('Sessão encerrada. Entre de novo.'); }
+  $('pedir').addEventListener('click', async () => {
+    const email = $('email').value.trim(); if (!email) return status('Escreva o e-mail.', 'aviso');
+    $('pedir').disabled = true; status('Enviando o código...');
+    try { await post({ acao: 'adm_codigo', email }); $('passo2').hidden = false; status('Se o e-mail for o autorizado, o código chegou. Confira a caixa de entrada e o spam.', 'ok'); $('codigo').focus(); }
+    catch (e) { status('Não consegui falar com a ponte. Tente de novo.', 'aviso'); }
+    $('pedir').disabled = false;
+  });
+  $('confirmar').addEventListener('click', async () => {
+    const email = $('email').value.trim(), codigo = $('codigo').value.trim();
+    try {
+      const d = await post({ acao: 'adm_entrar', email, codigo });
+      if (!d.ok) return status('Código inválido ou vencido. Peça outro.', 'aviso');
+      sessao = d.sessao; try { sessionStorage.setItem('depo_sessao', sessao); } catch (e) { /* */ }
+      $('entrar').hidden = true; $('lista-area').hidden = false; carregar();
+    } catch (e) { status('Falhou. Tente de novo.', 'aviso'); }
+  });
+  $('codigo').addEventListener('keydown', (e) => { if (e.key === 'Enter') $('confirmar').click(); });
+  $('sair').addEventListener('click', sair);
+  $('recarregar').addEventListener('click', carregar);
+  document.querySelectorAll('.filtros [data-f]').forEach(b => b.addEventListener('click', () => {
+    filtro = b.dataset.f; document.querySelectorAll('.filtros [data-f]').forEach(x => x.classList.toggle('on', x === b)); render();
+  }));
+  async function carregar() {
+    $('resumo').textContent = 'Carregando...';
+    try { const d = await post({ acao: 'adm_lista' }); linhas = d.linhas || []; render(); }
+    catch (e) { $('resumo').textContent = 'Não consegui carregar.'; }
+  }
+  const fmt = (iso) => iso ? new Date(iso).toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' }) : '';
+  function render() {
+    const l = linhas.filter(x => !filtro || x.status === filtro);
+    const n = { pendente: 0, conferido: 0, recusado: 0 }; linhas.forEach(x => { n[x.status] = (n[x.status] || 0) + 1; });
+    $('resumo').textContent = `${linhas.length} depoimentos: ${n.pendente} pendentes, ${n.conferido} conferidos, ${n.recusado} recusados. Mostrando ${l.length}.`;
+    const box = $('lista'); box.textContent = '';
+    l.forEach(x => {
+      const c = document.createElement('div'); c.className = 'card';
+      const esq = document.createElement('div');
+      const h = document.createElement('h3'); h.textContent = `${x.municipio} (${x.uf})` + (x.zona_secao ? ` · zona/seção ${x.zona_secao}` : ''); esq.appendChild(h);
+      const tag = document.createElement('span'); tag.className = 'tag ' + x.status; tag.textContent = x.status; esq.appendChild(tag);
+      const m = document.createElement('p'); m.className = 'meta';
+      m.textContent = `${x.nome}${x.whatsapp ? ' · WhatsApp ' + x.whatsapp : ''} · recebido ${fmt(x.recebido)} · ${x.duracao_s || '?'} s, ${x.tamanho_mb} MB` + (x.conferido_em ? ` · conferido ${fmt(x.conferido_em)}` : '') + (x.titulo_apagado_em ? ` · título apagado ${fmt(x.titulo_apagado_em)}` : ' · título ainda guardado');
+      esq.appendChild(m);
+      const obs = document.createElement('textarea'); obs.placeholder = 'Observação'; obs.value = x.obs || ''; esq.appendChild(obs);
+      const ac = document.createElement('div'); ac.className = 'acoes';
+      const mk = (txt, cls, fn) => { const b = document.createElement('button'); b.type = 'button'; b.className = 'btn ' + cls; b.textContent = txt; b.addEventListener('click', fn); ac.appendChild(b); return b; };
+      mk('✓ Conferido', 'ok', () => marcar(x, 'conferido', obs.value));
+      mk('✗ Recusado', 'bad', () => marcar(x, 'recusado', obs.value));
+      mk(x.publicar ? '★ Publicar: sim' : '☆ Publicar: não', '', () => marcar(x, x.status, obs.value, !x.publicar));
+      mk('Apagar envio', 'del', () => { if (confirm('Apagar este envio inteiro (vídeo, foto e registro)?')) apagar(x); });
+      esq.appendChild(ac);
+      const dir = document.createElement('div');
+      if (x.video_id) { const f = document.createElement('iframe'); f.src = 'https://drive.google.com/file/d/' + x.video_id + '/preview'; f.allow = 'autoplay'; dir.appendChild(f); }
+      if (x.titulo_id && x.titulo_id !== 'apagado') {
+        const b = document.createElement('button'); b.type = 'button'; b.className = 'btn'; b.textContent = 'Ver foto do título'; b.style.marginTop = '8px';
+        b.addEventListener('click', async () => { b.disabled = true; try { const d = await post({ acao: 'adm_titulo', id: x.titulo_id }); const img = document.createElement('img'); img.className = 'titulo'; img.src = 'data:' + (d.mime || 'image/jpeg') + ';base64,' + d.b64; dir.appendChild(img); b.remove(); } catch (e) { b.disabled = false; } });
+        dir.appendChild(b);
+      } else { const p = document.createElement('p'); p.className = 'meta'; p.textContent = 'Foto do título já apagada.'; dir.appendChild(p); }
+      c.appendChild(esq); c.appendChild(dir); box.appendChild(c);
+    });
+  }
+  async function marcar(x, st, obs, publicar) {
+    const corpo = { acao: 'adm_marcar', id: x.id, status: st, obs };
+    if (typeof publicar === 'boolean') corpo.publicar = publicar;
+    const d = await post(corpo);
+    if (d.ok) { x.status = st; x.obs = obs; if (typeof publicar === 'boolean') x.publicar = publicar; if (st !== 'pendente') { x.titulo_id = 'apagado'; x.titulo_apagado_em = new Date().toISOString(); x.conferido_em = x.conferido_em || x.titulo_apagado_em; } render(); }
+  }
+  async function apagar(x) { const d = await post({ acao: 'adm_apagar', id: x.id }); if (d.ok) { linhas = linhas.filter(y => y.id !== x.id); render(); } }
+  if (sessao) { $('entrar').hidden = true; $('lista-area').hidden = false; carregar(); }
+})();
+</script>
+</body>
+</html>

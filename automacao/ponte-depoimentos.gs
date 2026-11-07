@@ -199,3 +199,93 @@ function depoMarcar_(b) {
   }
   return { erro: 'id nao encontrado' };
 }
+
+/* ---------- painel do Rogerio: entrada por e-mail + código, sem senha fixa ---------- */
+const ADM_EMAIL = 'rogeriotpires@gmail.com';   // único e-mail que pode entrar no painel
+const ADM_SESSAO_S = 6 * 60 * 60;              // sessão de 6 horas (limite do cache)
+
+function admHash_(s) {
+  return Utilities.base64Encode(Utilities.computeDigest(Utilities.DigestAlgorithm.SHA_256, s, Utilities.Charset.UTF_8));
+}
+/** Passo 1: manda um código de 6 dígitos para o e-mail autorizado. Qualquer outro e-mail recebe a mesma resposta, sem enviar nada. */
+function admCodigo_(b) {
+  const email = depoLimpa_(b.email, 120).toLowerCase();
+  const cache = CacheService.getScriptCache();
+  const chaveTent = 'adm_tent_' + admHash_(email);
+  const tent = +(cache.get(chaveTent) || 0);
+  if (tent >= 5) return { ok: true };                       // silencia tentativas em excesso (15 min)
+  cache.put(chaveTent, String(tent + 1), 15 * 60);
+  if (email !== ADM_EMAIL) return { ok: true };
+  const codigo = String(Math.floor(100000 + Math.random() * 900000));
+  cache.put('adm_codigo', admHash_(codigo + email), 10 * 60);
+  MailApp.sendEmail({ to: email, subject: 'Fiscalize – código do painel: ' + codigo,
+    htmlBody: '<p>Seu código para entrar no painel de depoimentos é</p><p style="font-size:34px;font-weight:bold;letter-spacing:6px">' + codigo + '</p><p>Vale por 10 minutos. Se não foi você, ignore.</p>' });
+  return { ok: true };
+}
+/** Passo 2: confere o código e devolve a chave da sessão. */
+function admEntrar_(b) {
+  const email = depoLimpa_(b.email, 120).toLowerCase(), codigo = depoLimpa_(b.codigo, 6);
+  const cache = CacheService.getScriptCache();
+  const guardado = cache.get('adm_codigo');
+  if (email !== ADM_EMAIL || !guardado || guardado !== admHash_(codigo + email)) return { erro: 'codigo' };
+  cache.remove('adm_codigo');
+  const sessao = Utilities.getUuid().replace(/-/g, '') + Utilities.getUuid().replace(/-/g, '');
+  cache.put('adm_sessao_' + admHash_(sessao), '1', ADM_SESSAO_S);
+  return { ok: true, sessao: sessao, expira_s: ADM_SESSAO_S };
+}
+function admValida_(s) {
+  if (!s || String(s).length < 40) return false;
+  return CacheService.getScriptCache().get('adm_sessao_' + admHash_(String(s))) === '1';
+}
+/** Lista completa para o painel (só com sessão válida). */
+function admLista_() {
+  const sh = depoPlanilha_().getSheetByName('Depoimentos');
+  if (!sh || sh.getLastRow() < 2) return { linhas: [] };
+  const v = sh.getRange(2, 1, sh.getLastRow() - 1, DEPO_COLS.length).getValues();
+  const linhas = v.filter(r => r[0]).map(r => {
+    const o = {}; DEPO_COLS.forEach((c, i) => { o[c] = r[i] instanceof Date ? r[i].toISOString() : r[i]; }); return o;
+  });
+  return { linhas: linhas.reverse() };
+}
+/** Foto do título em base64 para o painel (se ainda existir). */
+function admTitulo_(b) {
+  if (!b.id) return { erro: 'dados' };
+  const r = depoTitulo_(String(b.id));
+  return r;
+}
+/** Marca conferido / recusado / pendente e publicar; apaga a foto do título quando sai de pendente. */
+function admMarcar_(b) {
+  const r = depoMarcar_({ id: b.id, status: b.status, obs: b.obs, zona_secao: b.zona_secao });
+  if (r.ok && typeof b.publicar === 'boolean') {
+    const sh = depoPlanilha_().getSheetByName('Depoimentos');
+    const v = sh.getRange(2, 1, Math.max(1, sh.getLastRow() - 1), 1).getValues();
+    for (let i = 0; i < v.length; i++) if (String(v[i][0]) === String(b.id)) sh.getRange(i + 2, DEPO_COLS.indexOf('publicar') + 1).setValue(b.publicar);
+  }
+  return r;
+}
+/** Apaga um envio inteiro (linha, vídeo e foto). Para testes e envios indevidos. */
+function admApagar_(b) {
+  const sh = depoPlanilha_().getSheetByName('Depoimentos');
+  const c = (n) => DEPO_COLS.indexOf(n);
+  const v = sh.getRange(2, 1, Math.max(1, sh.getLastRow() - 1), DEPO_COLS.length).getValues();
+  for (let i = 0; i < v.length; i++) {
+    if (String(v[i][0]) !== String(b.id)) continue;
+    [v[i][c('video_id')], v[i][c('titulo_id')]].forEach(id => {
+      if (id && id !== 'apagado') { try { DriveApp.getFileById(String(id)).setTrashed(true); } catch (e) { /* já foi */ } }
+    });
+    sh.deleteRow(i + 2);
+    return { ok: true, id: b.id };
+  }
+  return { erro: 'id nao encontrado' };
+}
+/** Porta de entrada das chamadas do painel. */
+function admPost_(body) {
+  if (body.acao === 'adm_codigo') return admCodigo_(body);
+  if (body.acao === 'adm_entrar') return admEntrar_(body);
+  if (!admValida_(body.s)) return { erro: 'sessao' };
+  if (body.acao === 'adm_lista') return admLista_();
+  if (body.acao === 'adm_titulo') return admTitulo_(body);
+  if (body.acao === 'adm_marcar') return admMarcar_(body);
+  if (body.acao === 'adm_apagar') return admApagar_(body);
+  return { erro: 'acao desconhecida' };
+}

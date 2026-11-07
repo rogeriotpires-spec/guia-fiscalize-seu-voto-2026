@@ -277,6 +277,7 @@ function doPost(e) {
   if (body.acao === 'checar') return json_(checar_(body));
   if (body.acao === 'depo_parte') return json_(depoParte_(body));
   if (body.acao === 'depo_fim') return json_(depoFim_(body));
+  if (/^adm_/.test(String(body.acao || ''))) return json_(admPost_(body));
   if (!autorizado_(body.t)) return json_({ erro: 'nao autorizado' });
   if (body.acao === 'depo_marcar') return json_(depoMarcar_(body));
   const ed = body.editaveis || {}, cx = body.caixas || {};
