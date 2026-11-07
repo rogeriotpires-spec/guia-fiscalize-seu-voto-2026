@@ -75,8 +75,8 @@ def ler_zona_secao(img):
         if m:
             zona, secao = int(m.group(1)), int(m.group(2))
         else:
-            z = re.search(r'ZONA\D{0,12}(\d{1,4})', t)
-            s_ = re.search(r'SE[CG5][AÁ4]O\D{0,12}(\d{1,4})', t)
+            z = re.search(r'ZONA\D{0,20}(\d{1,4})', t)
+            s_ = re.search(r'SE[CG5][AÁ4]O\D{0,20}(\d{1,4})', t)
             zona, secao = (int(z.group(1)), int(s_.group(1))) if (z and s_) else (None, None)
         if zona and secao:
             return zona, secao, txt
