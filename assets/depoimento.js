@@ -65,6 +65,10 @@
   $('titulo').addEventListener('change', async () => {
     const f = $('titulo').files[0]; if (!f) return;
     foto = null; $('foto-prev').hidden = true;
+    if (f.type === 'application/pdf' || /\.pdf$/i.test(f.name)) {
+      if (f.size > 3 * 1024 * 1024) return status('PDF acima de 3 MB. Tire uma foto do título em vez do PDF.', 'aviso', 'status-foto');
+      foto = f; return status('PDF do e-Título pronto (' + (f.size / 1024).toFixed(0) + ' KB).', 'ok', 'status-foto');
+    }
     status('Lendo a foto...', '', 'status-foto');
     try {
       let bmp;
@@ -120,7 +124,7 @@
         $('barra-i').style.width = Math.round(90 * (i + 1) / n) + '%';
       }
       status('Enviando a foto e os dados.');
-      const r = await postTentando({ acao: 'depo_fim', envio, n, uf, municipio: m.nome, cod, secao: sec, nome, whats: $('whats').value.trim(), dur: Math.round(videoDur), tipo: video.type || 'video/mp4', tamanho: video.size, titulo_b64: await b64(foto), aceite: true, site: $('site').value });
+      const r = await postTentando({ acao: 'depo_fim', envio, n, uf, municipio: m.nome, cod, secao: sec, nome, whats: $('whats').value.trim(), dur: Math.round(videoDur), tipo: video.type || 'video/mp4', tamanho: video.size, titulo_b64: await b64(foto), titulo_tipo: foto.type || 'image/jpeg', aceite: true, site: $('site').value });
       if (!r.ok) throw new Error(r.erro || 'fim');
       $('barra-i').style.width = '100%';
       $('form').hidden = true; $('sucesso').hidden = false; window.scrollTo(0, 0);

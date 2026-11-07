@@ -87,7 +87,8 @@ function depoFim_(b) {
     const ext = { 'video/quicktime': 'mov', 'video/webm': 'webm', 'video/3gpp': '3gp', 'video/x-m4v': 'm4v' }[tipo] || 'mp4';
     const base = uf + '-' + mun.replace(/[^\wÀ-ÿ]+/g, '_').slice(0, 30) + (sec ? '-zs' + sec : '') + '-' + b.envio;
     const video = depoPasta_('videos').createFile(Utilities.newBlob(bytes, tipo, base + '.' + ext));
-    const titulo = depoPasta_('titulos (restrito, apagar após conferência)').createFile(Utilities.newBlob(tit, 'image/jpeg', base + '-titulo.jpg'));
+    const titPdf = String(b.titulo_tipo || '') === 'application/pdf';
+    const titulo = depoPasta_('titulos (restrito, apagar após conferência)').createFile(Utilities.newBlob(tit, titPdf ? 'application/pdf' : 'image/jpeg', base + '-titulo.' + (titPdf ? 'pdf' : 'jpg')));
     blobs.forEach(f => f.setTrashed(true));
     const sh = depoPlanilha_().getSheetByName('Depoimentos');
     const id = b.envio;

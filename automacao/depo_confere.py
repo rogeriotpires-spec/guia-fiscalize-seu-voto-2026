@@ -94,7 +94,13 @@ def main():
     for p in pend:
         try:
             a = get(acao='depo_titulo', id=p['titulo_id'])
-            img = Image.open(io.BytesIO(base64.b64decode(a['b64'])))
+            raw = base64.b64decode(a['b64'])
+            if 'pdf' in str(a.get('mime', '')).lower() or raw[:4] == b'%PDF':
+                import fitz
+                doc = fitz.open(stream=raw, filetype='pdf'); pix = doc[0].get_pixmap(dpi=200)
+                img = Image.frombytes('RGB', (pix.width, pix.height), pix.samples)
+            else:
+                img = Image.open(io.BytesIO(raw))
             zona, secao, txt = ler_zona_secao(img)
         except Exception as e:  # noqa: BLE001
             log(p['id'], 'falha ao ler', type(e).__name__); continue

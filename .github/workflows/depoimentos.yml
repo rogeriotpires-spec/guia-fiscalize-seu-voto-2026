@@ -27,7 +27,7 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
-      - run: pip install -q pytesseract==0.3.13 pillow==10.4.0 requests==2.32.3 pillow-heif==0.18.0
+      - run: pip install -q pytesseract==0.3.13 pillow==10.4.0 requests==2.32.3 pillow-heif==0.18.0 pymupdf==1.24.10
       - name: Conferir os títulos
         env:
           PONTE_URL: ${{ vars.PONTE_URL }}
