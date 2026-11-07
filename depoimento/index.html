@@ -1,0 +1,112 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Você votou no Flávio? | Fiscalize Seu Voto 2026 | Revista Timeline</title>
+<meta name="description" content="Em 135 seções eleitorais o TSE registrou zero votos para Flávio Bolsonaro no 2º turno. Se você votou nele numa dessas seções, grave um depoimento.">
+<meta property="og:title" content="Você votou no Flávio numa seção onde ele teve zero votos? | Revista Timeline">
+<meta property="og:description" content="Grave um vídeo curto. Um voto só já derruba o zero.">
+<meta property="og:image" content="https://rogeriotpires-spec.github.io/guia-fiscalize-seu-voto-2026/assets/pagina-6.png">
+<link rel="stylesheet" href="../assets/timeline-header.css?v=5">
+<link rel="stylesheet" href="../assets/conferir.css?v=7">
+<style>
+.depo .lista-secoes{list-style:none;padding:0;margin:10px 0 0;display:grid;gap:8px}
+.depo .lista-secoes label{display:flex;gap:10px;align-items:flex-start;background:#1b1612;border:1px solid var(--line);border-radius:10px;padding:10px 12px;cursor:pointer}
+.depo .lista-secoes input{margin-top:4px}
+.depo .lista-secoes b{display:block}
+.depo .lista-secoes small{color:#cfc9c3}
+.depo .barra{height:12px;background:#2a2118;border-radius:6px;overflow:hidden;margin-top:10px}
+.depo .barra i{display:block;height:100%;width:0;background:var(--orange);transition:width .3s}
+.depo .video-prev{width:100%;max-height:360px;border-radius:10px;background:#000;margin-top:10px}
+.depo .foto-prev{max-width:240px;border-radius:10px;margin-top:10px;display:block}
+.depo .aceite{display:flex;gap:10px;align-items:flex-start;margin-top:14px;font-size:15px}
+.depo .aceite input{margin-top:5px}
+.depo .numeros{display:flex;gap:12px;flex-wrap:wrap;margin:14px 0}
+.depo .numeros div{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px 16px;min-width:120px}
+.depo .numeros b{font-size:30px;color:var(--orange);display:block}
+</style>
+</head>
+<body>
+<script src="https://rogeriotpires-spec.github.io/apuracao-timeline/menu/timeline-menu.js"></script>
+<nav class="fiscalize-subnav" aria-label="Áreas do Fiscalize Seu Voto">
+  <div class="fiscalize-subnav__in">
+    <a class="fiscalize-subnav__brand" href="../"><span class="fiscalize-subnav__mark">F</span> FISCALIZE SEU VOTO</a>
+    <div class="fiscalize-subnav__links">
+      <a href="../">Guia do fiscal</a>
+      <a href="../conferir/">Confira seu BU</a>
+      <a href="../boletins/">Boletins enviados</a>
+      <a href="../resultado/">Resultado dos boletins</a>
+      <a href="../enviar/">Enviar boletim</a>
+      <a href="./" aria-current="page" class="destaque">Votou no Flávio?</a>
+    </div>
+  </div>
+</nav>
+
+<main class="enviar depo">
+  <p class="eyebrow">2º TURNO · SEÇÕES COM ZERO VOTOS</p>
+  <h1>VOCÊ VOTOU NO <span>FLÁVIO</span>?</h1>
+  <p class="intro">Em 135 seções eleitorais de 20 estados, o TSE diz que Flávio Bolsonaro teve zero votos no 2º turno. Nem um. Se você votou nele numa dessas seções, o seu voto não existe para o TSE. Eu quero ouvir você.</p>
+  <div class="numeros"><div><b>135</b>seções com zero</div><div><b>85</b>municípios</div><div><b>118</b>votos do 1º turno que sumiram</div></div>
+  <p class="muted pequeno" id="contador" hidden>Transparência: <b id="c-rec">0</b> depoimentos recebidos, <b id="c-conf">0</b> conferidos, <b id="c-apag">0</b> fotos de título já apagadas, <b id="c-guard">0</b> aguardando conferência.</p>
+
+  <form id="form" class="painel" novalidate aria-labelledby="t-local">
+    <h2 id="t-local">1. Onde você votou?</h2>
+    <div class="grade duas">
+      <label>Estado
+        <select id="uf" required><option value="">Escolha</option></select>
+      </label>
+      <label>Município
+        <select id="municipio" required disabled><option value="">Escolha o estado</option></select>
+      </label>
+    </div>
+    <div id="secoes" hidden>
+      <p class="muted" style="margin-top:14px">Seções desse município com zero votos. Marque a sua, se souber. Se não souber, deixe em branco.</p>
+      <ul class="lista-secoes" id="lista-secoes"></ul>
+    </div>
+
+    <h2 style="margin-top:26px">2. Grave o seu depoimento</h2>
+    <p class="muted">Diga seu nome, sua cidade, a escola em que votou e que você votou no Flávio no 2º turno. Até 60 segundos.</p>
+    <label class="upload grande" for="video">
+      <input id="video" type="file" accept="video/*" capture="user">
+      <span class="btn primary gigante">🎥 Gravar ou escolher o vídeo</span>
+    </label>
+    <video id="video-prev" class="video-prev" controls playsinline hidden></video>
+    <div id="status-video" class="status" role="status" aria-live="polite"></div>
+
+    <h2 style="margin-top:26px">3. Mostre que você vota ali</h2>
+    <p class="muted">Foto do título de eleitor ou da tela do e-Título. Pode cobrir o nome com o dedo: eu só preciso ver a zona e a seção. A foto é conferida e apagada. Nunca é publicada.</p>
+    <label class="upload grande" for="titulo">
+      <input id="titulo" type="file" accept="image/*" capture="environment">
+      <span class="btn gigante">📷 Fotografar o título ou e-Título</span>
+    </label>
+    <img id="foto-prev" class="foto-prev" alt="" hidden>
+
+    <h2 style="margin-top:26px">4. Seus dados</h2>
+    <div class="grade duas">
+      <label>Nome<input id="nome" maxlength="80" autocomplete="name" required></label>
+      <label>WhatsApp (opcional)<input id="whats" inputmode="tel" maxlength="30" autocomplete="tel" placeholder="(DDD) número"></label>
+    </div>
+    <p class="muted pequeno">O WhatsApp só serve para eu falar com você se precisar. Nunca aparece no site.</p>
+    <label class="aceite"><input type="checkbox" id="aceite" required> Autorizo a Revista Timeline a publicar o meu depoimento em vídeo, com meu nome e minha cidade. Sei que a foto do meu título será apagada depois da conferência.</label>
+    <input id="site" name="site" tabindex="-1" autocomplete="off" class="oculto" aria-hidden="true">
+    <button class="btn primary gigante" id="enviar" type="submit" style="margin-top:18px">Enviar depoimento</button>
+    <div class="barra" id="barra" hidden><i id="barra-i"></i></div>
+    <div id="status" class="status" role="status" aria-live="polite"></div>
+  </form>
+
+  <section class="painel sucesso" id="sucesso" hidden>
+    <div class="selo ok">✓ Depoimento recebido</div>
+    <p>Obrigado. Eu mesmo vou conferir a zona e a seção, apagar a foto do título e entrar em contato se precisar. Um voto só já derruba o zero.</p>
+    <div class="actions">
+      <button class="btn primary" id="compartilhar" type="button">Compartilhar com quem mora aí</button>
+      <a class="btn" href="./">Enviar outro depoimento</a>
+    </div>
+  </section>
+
+  <p class="muted pequeno">Internet fraca? Grave o vídeo curto, em 720p, e tente de novo com sinal melhor. O envio recomeça do zero se cair.</p>
+</main>
+<footer>REVISTA TIMELINE · FISCALIZE SEU VOTO 2026<br>Conferência nacional dos boletins de urna por Rogerio Pires<br><a href="https://www.instagram.com/rogerrio/" target="_blank" rel="noopener noreferrer">Instagram @rogerrio</a> · <a href="https://x.com/rogerrioX" target="_blank" rel="noopener noreferrer">X @rogerrioX</a></footer>
+<script src="../assets/depoimento.js?v=1"></script>
+</body>
+</html>

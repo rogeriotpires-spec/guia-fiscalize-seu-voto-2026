@@ -13,7 +13,7 @@
  * Depois de colar este código: Implantar > Gerenciar implantações > lápis >
  * Versão "Nova versão" > Implantar (mantém a mesma URL usada pelo site).
  */
-const VERSAO_PONTE = 2;
+const VERSAO_PONTE = 3;
 const ORCAMENTO_MS = 150 * 1000;  // trabalho máximo por chamada de 'respostas'
 const NOME_CACHE = 'Fiscalize – Respostas do formulário (cache restrito).json';
 const FORM_ID = '1I5Dtwl42Ix2hc24trXyLfz7p1negFX_7Ftqs6-CYAso';
@@ -166,6 +166,7 @@ function doGet(e) {
   const q = e.parameter || {};
   if (!autorizado_(q.t)) return json_({ erro: 'nao autorizado' });
   if (q.acao === 'versao') return json_(versao_());
+  if (q.acao === 'depo_contador') return json_(depoContador_());
   if (q.acao === 'respostas') return json_(respostas_());
   if (q.acao === 'arquivo') return json_(arquivo_(q.id));
   if (q.acao === 'marcacoes') return json_(marcacoes_());
@@ -272,6 +273,8 @@ function doPost(e) {
   try { body = JSON.parse(e.postData.contents); } catch (x) { return json_({ erro: 'json' }); }
   if (body.acao === 'enviar') return json_(enviar_(body));
   if (body.acao === 'checar') return json_(checar_(body));
+  if (body.acao === 'depo_parte') return json_(depoParte_(body));
+  if (body.acao === 'depo_fim') return json_(depoFim_(body));
   if (!autorizado_(body.t)) return json_({ erro: 'nao autorizado' });
   const ed = body.editaveis || {}, cx = body.caixas || {};
   PropertiesService.getScriptProperties().setProperty('EDITAVEIS', JSON.stringify(ed));
