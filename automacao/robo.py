@@ -56,7 +56,7 @@ ESTADO = os.path.join(RAIZ, 'automacao', 'estado.json')
 SAIDA = os.path.join(RAIZ, 'data', 'bus', 'painel.json')
 PASTA_IMG = os.path.join(RAIZ, 'bus', 'img')
 BASE = os.path.join(RAIZ, 'data', '2t')
-VERSAO = 4  # muda quando a lógica de leitura muda (reprocessa o que não tem QR completo)
+VERSAO = 5  # muda quando a lógica de leitura muda (reprocessa o que não tem QR completo)
 os.environ.setdefault('OMP_THREAD_LIMIT', '1')  # tesseract com uma thread por processo
 DEPURACAO = os.path.join(RAIZ, 'automacao', 'depuracao')
 # chave pública para miniaturas de depuração criptografadas (só o Claude tem a privada)
@@ -453,12 +453,23 @@ def processar_arquivo(fid):
     qrs = set()
     for im in imgs:
         qrs |= ler_qrs(im)
+    bu = montar_bu(sorted(q for q in qrs if q.startswith('QRBU:')))
+    if not bu or bu['falta']:
+        import revisao_auto
+        for im in imgs:
+            qrs |= revisao_auto.ler_qrs_reforcado(im, qrs)
     res['qr'] = sorted(q for q in qrs if q.startswith('QRBU:'))  # QR de outro tipo pode ter dado pessoal
     res['outros_qr'] = len(qrs) - len(res['qr'])
     res['outros_qr_inicio'] = sorted({re.sub(r'[^A-Za-z:/.]', '', q[:8]) for q in qrs if not q.startswith('QRBU:')})
     bu = montar_bu(res['qr'])
     if not bu or bu['falta']:
-        res['ocr'] = resumo_ocr((info.get('texto_pdf') or '') + '\n' + '\n'.join(ocr(im) for im in imgs[:2]))
+        import revisao_auto
+        textos = []
+        if info.get('texto_pdf'):
+            textos.append(info['texto_pdf'])
+        for im in imgs[:2]:
+            textos.extend(revisao_auto.ocr_reforcado(im, partes=True) or [])
+        res['ocr'] = revisao_auto.fundir_ocr(textos)
     res['rosto'] = any(tem_rosto(im) for im in imgs[:2])
     if not bu or bu['falta']:
         try:
@@ -544,11 +555,16 @@ def classificar(resp, c, arqs, revisao):
         chave = f"{r['mun']}-{r['zona']}-{r['secao']}"
         of = base.get(chave) if base else None
         if of is None:
+            import revisao_auto
+            r['motivo'] = revisao_auto.motivo_pendente(bu=bu, uf=r['uf'], mun=r['mun'], zona=r['zona'], secao=r['secao'], oficial=None)
             return st or 'nao_encontrada', r
         r['oficial'] = of
         if st:
             return st, r
-        return ('confere' if r['lido'] == of else 'diverge'), r
+        if r['lido'] == of:
+            return 'confere', r
+        r['motivo'] = 'números do QR divergem do TSE; a publicação da divergência exige aprovação'
+        return 'diverge', r
 
     # sem QR completo: tenta os números pelo texto, com a seção informada no formulário
     if turno1 and kw >= 3:
@@ -573,21 +589,23 @@ def classificar(resp, c, arqs, revisao):
     if bu and bu['falta']:
         r['motivo'] = f"faltam QR Codes ({len(bu['falta'])} de {bu['total']})"
     if of is not None and kw >= 2:
+        import revisao_auto
         nums = {}
         for a in validos:
             for k2, v2 in a['ocr'].get('nums', {}).items():
                 nums.setdefault(k2, []).extend(v2)
-        ok = [v in nums.get(k2, []) for k2, v in zip(('lula', 'flavio', 'branco', 'nulo'), of)]
-        if all(ok):
+        if revisao_auto.numeros_conferem(nums, of):
             r['lido'] = of
             r['fonte'] = 'leitura dos números'
             if digital:
                 return 'via_digital', r
             return 'confere_numeros', r
+        r['motivo'] = r['motivo'] or revisao_auto.motivo_pendente(bu=bu, uf=r['uf'], mun=r['mun'], zona=r['zona'], secao=r['secao'], oficial=of, nums=nums)
     if digital and kw >= 3:
         return 'via_digital', r
     if kw >= 3 or (bu is not None):
-        r['motivo'] = r['motivo'] or 'boletim identificado, números ainda não confirmados'
+        import revisao_auto
+        r['motivo'] = r['motivo'] or revisao_auto.motivo_pendente(bu=bu, uf=r['uf'], mun=r['mun'], zona=r['zona'], secao=r['secao'], oficial=of, nums=None)
         return 'em_analise', r
     if not validos:
         r['motivo'] = 'arquivo não abriu'
@@ -595,7 +613,8 @@ def classificar(resp, c, arqs, revisao):
     if letras > 40:
         r['motivo'] = 'imagem com texto, sem sinais de boletim de urna'
         return 'nao_e_bu', r
-    r['motivo'] = 'não foi possível ler QR Code nem números'
+    import revisao_auto
+    r['motivo'] = revisao_auto.motivo_pendente(bu=bu, uf=r['uf'], mun=r['mun'], zona=r['zona'], secao=r['secao'], oficial=of)
     return 'ilegivel', r
 
 
@@ -715,6 +734,13 @@ def main():
                 del falhas_rede[h(fid)]
 
     # classificação por envio
+    anteriores = {}
+    if os.path.exists(SAIDA):
+        try:
+            for it in json.load(open(SAIDA)).get('itens', []):
+                anteriores[it.get('id')] = it.get('status')
+        except Exception:  # noqa: BLE001
+            anteriores = {}
     vistos_sha = {}
     itens, internos = [], []
     for r, c in sorted(envios, key=lambda x: x[0]['ts']):
@@ -728,6 +754,10 @@ def main():
             continue
         st, info = classificar(r, c, arqs, revisao)
         chave_env = h(r['id'])
+        # a revisão automática não descarta como "não é boletim" um envio que já estava em análise
+        if anteriores.get(chave_env[:12]) in ('em_analise', 'nao_encontrada', 'ilegivel') and st == 'nao_e_bu':
+            info['motivo'] = (info.get('motivo') or 'texto inconclusivo') + ' (mantido em análise: a revisão automática não descarta sozinha um envio já identificado)'
+            st = 'em_analise'
         if shas and all(s in vistos_sha for s in shas):
             info['motivo'] = 'mesma foto já enviada antes'
             st = 'repetida'
